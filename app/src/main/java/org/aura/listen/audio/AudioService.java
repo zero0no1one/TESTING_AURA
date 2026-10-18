@@ -50,6 +50,9 @@ public final class AudioService extends Service {
     private static double inputDbfs = -96, outputDbfs = -96, processingMs;
     private static int sampleRate;
     private static boolean hardwareSuppression;
+    private static String inputRoute = "Not active", captureSource = "Not active";
+    private static int underruns, mediaVolume, mediaMaximum;
+    private static volatile SoundClassifier activeClassifier;
     private static AudioProcessor.Settings snapshotSettings = AudioProcessor.Settings.defaults();
 
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -109,6 +112,10 @@ public final class AudioService extends Service {
                         .put("outputDbfs", outputDbfs).put("processingMs", processingMs)
                         .put("sampleRate", sampleRate).put("route", route)
                         .put("noiseSuppressor", hardwareSuppression).put("settings", asJson(snapshotSettings));
+                object.put("inputRoute", inputRoute).put("captureSource", captureSource).put("underruns", underruns)
+                        .put("mediaVolume", mediaVolume).put("mediaMaximum", mediaMaximum);
+                SoundClassifier classifier = activeClassifier;
+                object.put("categories", classifier == null ? SoundClassifier.status("off", "Sound detection is off or listening has stopped.") : classifier.snapshot());
             } catch (JSONException ignored) { /* All values are finite primitives. */ }
             return object;
         }
@@ -205,6 +212,9 @@ public final class AudioService extends Service {
             startedAt = 0; startedElapsed = 0; durationMs = 0;
             inputDbfs = -96; outputDbfs = -96; processingMs = 0;
             sampleRate = 0; hardwareSuppression = false; route = routeName(output);
+            inputRoute = "Checking microphone…"; captureSource = "Preparing"; underruns = 0;
+            mediaVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+            mediaMaximum = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         }
         setState("starting", "Checking headphone routing…");
         worker = new Thread(() -> runAudio(output, startId), "AURA-audio");
@@ -221,7 +231,8 @@ public final class AudioService extends Service {
             AudioProcessor.Settings previous = settings;
             settings = new AudioProcessor.Settings(value.optString("mode", previous.mode),
                     value.optInt("clarity", previous.clarity), value.optInt("reduction", previous.reduction),
-                    value.optInt("awareness", previous.awareness), value.optInt("volume", previous.volume));
+                    value.optInt("awareness", previous.awareness), value.optInt("volume", previous.volume),
+                    value.optInt("micGainDb", 0), value.optBoolean("monitor", false), value.optInt("humHz", 0));
             synchronized (STATE_LOCK) { snapshotSettings = settings; }
         } catch (JSONException ignored) { /* Keep the last usable settings. */ }
     }
@@ -232,6 +243,7 @@ public final class AudioService extends Service {
         NoiseSuppressor suppressor = null;
         long sessionWall = 0, sessionElapsed = 0;
         JSONObject initialPreferences = preferenceSnapshot;
+        SoundClassifier classifier = null;
         boolean focusHeld = false, recordingCallbackRegistered = false, suppressorEnabled = false;
         try {
             Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
@@ -240,12 +252,16 @@ public final class AudioService extends Service {
                 throw new AudioFailure("Another app is using audio. Finish that session, then try again.");
             focusHeld = true;
             int rate = 48000;
+            String selectedMicrophone = preferenceSnapshot.optString("microphone", "phone");
+            int source = "true".equals(audioManager.getProperty(AudioManager.PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED))
+                    ? MediaRecorder.AudioSource.UNPROCESSED : MediaRecorder.AudioSource.VOICE_RECOGNITION;
+            synchronized (STATE_LOCK) { captureSource = source == MediaRecorder.AudioSource.UNPROCESSED ? "Unprocessed microphone" : "Voice-recognition input (device-dependent processing)"; }
             for (int attempt = 0; attempt < 2; attempt++) {
                 rate = attempt == 0 ? 48000 : 16000;
                 int minimum = AudioRecord.getMinBufferSize(rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
                 if (minimum <= 0) continue;
                 try {
-                    recorder = new AudioRecord.Builder().setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+                    recorder = new AudioRecord.Builder().setAudioSource(source)
                             .setAudioFormat(new AudioFormat.Builder().setSampleRate(rate)
                                     .setChannelMask(AudioFormat.CHANNEL_IN_MONO).setEncoding(AudioFormat.ENCODING_PCM_16BIT).build())
                             .setBufferSizeInBytes(Math.max(minimum, rate / 100 * 2 * 4)).build();
@@ -260,16 +276,21 @@ public final class AudioService extends Service {
                 recorder.registerAudioRecordingCallback(main::post, microphoneState);
                 recordingCallbackRegistered = true;
             }
-            for (AudioDeviceInfo input : audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)) {
-                if (input.getType() == AudioDeviceInfo.TYPE_BUILTIN_MIC) { recorder.setPreferredDevice(input); break; }
+            AudioDeviceInfo selectedInput = null;
+            for (AudioDeviceInfo device : audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)) {
+                boolean headset = device.getType() == AudioDeviceInfo.TYPE_WIRED_HEADSET || device.getType() == AudioDeviceInfo.TYPE_USB_HEADSET || device.getType() == AudioDeviceInfo.TYPE_USB_DEVICE;
+                if (("headset".equals(selectedMicrophone) && headset) || ("phone".equals(selectedMicrophone) && device.getType() == AudioDeviceInfo.TYPE_BUILTIN_MIC)) { selectedInput = device; break; }
             }
+            if (selectedInput == null || !recorder.setPreferredDevice(selectedInput))
+                throw new AudioFailure("The selected microphone is unavailable. Choose Phone microphone, or connect a headset with a microphone.");
+            int selectedInputId = selectedInput.getId();
             int frameCount = rate / 100; // 10 ms DSP blocks; hardware/transport adds latency.
             int minOutput = AudioTrack.getMinBufferSize(rate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
             if (minOutput <= 0) throw new AudioFailure("This phone could not open headphone audio playback.");
             track = new AudioTrack.Builder().setAudioAttributes(playbackAttributes())
                     .setAudioFormat(new AudioFormat.Builder().setSampleRate(rate).setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                             .setEncoding(AudioFormat.ENCODING_PCM_16BIT).build())
-                    .setTransferMode(AudioTrack.MODE_STREAM).setBufferSizeInBytes(Math.max(minOutput, frameCount * 2 * 3))
+                    .setTransferMode(AudioTrack.MODE_STREAM).setBufferSizeInBytes(Math.max(minOutput, frameCount * 2 * 6))
                     .setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY).build();
             activeTrack = track;
             if (track.getState() != AudioTrack.STATE_INITIALIZED || !track.setPreferredDevice(output))
@@ -279,7 +300,9 @@ public final class AudioService extends Service {
             short[] processed = new short[frameCount];
             // Activate the route with silence before reading or writing any microphone samples.
             if (!requested) return;
-            track.write(processed, 0, processed.length, AudioTrack.WRITE_NON_BLOCKING);
+            short[] prime = new short[track.getBufferSizeInFrames()];
+            int primed = track.write(prime, 0, prime.length, AudioTrack.WRITE_NON_BLOCKING);
+            if (primed <= 0) throw new AudioFailure("Headphone playback could not be prepared. Reconnect your headphones.");
             track.play();
             long routeDeadline = SystemClock.elapsedRealtime() + 1500;
             while (requested && !isExpectedRoute(track.getRoutedDevice()) && SystemClock.elapsedRealtime() < routeDeadline) {
@@ -294,7 +317,7 @@ public final class AudioService extends Service {
             try {
                 if (NoiseSuppressor.isAvailable()) {
                     suppressor = NoiseSuppressor.create(recorder.getAudioSessionId());
-                    if (suppressor != null) suppressor.setEnabled(applied.reduction > 0);
+                    if (suppressor != null) suppressor.setEnabled(!applied.monitor && preferenceSnapshot.optBoolean("deviceSuppression", false) && applied.reduction > 0);
                 }
             } catch (RuntimeException ignored) {
                 if (suppressor != null) { try { suppressor.release(); } catch (RuntimeException unused) { } }
@@ -317,6 +340,9 @@ public final class AudioService extends Service {
             AppStore.put(initialPreferences, "reduction", applied.reduction);
             AppStore.put(initialPreferences, "awareness", applied.awareness);
             AppStore.put(initialPreferences, "volume", applied.volume);
+            AppStore.put(initialPreferences, "micGainDb", applied.micGainDb);
+            AppStore.put(initialPreferences, "monitor", applied.monitor);
+            AppStore.put(initialPreferences, "humHz", applied.humHz);
             sessionWall = System.currentTimeMillis();
             sessionElapsed = SystemClock.elapsedRealtime();
             synchronized (STATE_LOCK) {
@@ -329,6 +355,8 @@ public final class AudioService extends Service {
                         notification("Microphone active · " + routeName(output)));
             });
             int emptyReads = 0;
+            int startupUnderruns = track.getUnderrunCount();
+            long nextMediaCheck = 0;
             while (requested) {
                 if (!isExpectedRoute(track.getRoutedDevice()))
                     throw new AudioFailure("Audio routing changed. Listening stopped to avoid speaker playback.");
@@ -337,11 +365,21 @@ public final class AudioService extends Service {
                 if (count < 0) throw new AudioFailure("The microphone was interrupted. Close other audio apps and try again.");
                 if (count == 0) { if (++emptyReads > 30) throw new AudioFailure("The microphone returned no audio."); continue; }
                 emptyReads = 0;
+                AudioDeviceInfo actualInput = recorder.getRoutedDevice();
+                if (actualInput != null && actualInput.getId() != selectedInputId)
+                    throw new AudioFailure("Android changed the microphone route. Choose an available microphone and start again.");
+                if (!selectedMicrophone.equals(preferenceSnapshot.optString("microphone", "phone")))
+                    throw new AudioFailure("Microphone selection changed. Tap Start to use the new microphone.");
+                synchronized (STATE_LOCK) { inputRoute = actualInput == null ? "Input route not reported by Android" : ("headset".equals(selectedMicrophone) ? "Headset: " : "Phone: ") + actualInput.getProductName().toString(); }
+                boolean classify = preferenceSnapshot.optBoolean("soundCategories", true);
+                if (classify && classifier == null) { classifier = new SoundClassifier(getApplicationContext(), rate); activeClassifier = classifier; }
+                if (!classify && classifier != null) { activeClassifier = null; classifier.close(); classifier = null; }
+                if (classifier != null) classifier.offer(input, count);
                 AudioProcessor.Settings latest = settings;
                 if (latest != applied) {
                     processor.configure(latest);
                     if (suppressor != null) {
-                        try { suppressor.setEnabled(latest.reduction > 0); }
+                        try { suppressor.setEnabled(!latest.monitor && preferenceSnapshot.optBoolean("deviceSuppression", false) && latest.reduction > 0); }
                         catch (RuntimeException ignored) { suppressor.release(); suppressor = null; }
                     }
                     suppressorEnabled = suppressionEnabled(suppressor);
@@ -362,6 +400,12 @@ public final class AudioService extends Service {
                 synchronized (STATE_LOCK) {
                     inputDbfs = processor.getInputDbfs(); outputDbfs = processor.getOutputDbfs(); processingMs = processingTime;
                     hardwareSuppression = suppressorEnabled;
+                    underruns = Math.max(0, track.getUnderrunCount() - startupUnderruns);
+                    if (SystemClock.elapsedRealtime() >= nextMediaCheck) {
+                        mediaVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                        mediaMaximum = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+                        nextMediaCheck = SystemClock.elapsedRealtime() + 500;
+                    }
                 }
             }
         } catch (InterruptedException ignored) {
@@ -376,6 +420,8 @@ public final class AudioService extends Service {
             requested = false;
             routeVerified = false;
             activeRecord = null; activeTrack = null;
+            activeClassifier = null;
+            if (classifier != null) classifier.close();
             if (track != null) {
                 try { track.pause(); track.flush(); track.removeOnRoutingChangedListener(routeListener); } catch (RuntimeException ignored) { }
                 try { track.release(); } catch (RuntimeException ignored) { }
@@ -465,7 +511,7 @@ public final class AudioService extends Service {
 
     private static JSONObject asJson(AudioProcessor.Settings value) throws JSONException {
         return new JSONObject().put("mode", value.mode).put("clarity", value.clarity).put("reduction", value.reduction)
-                .put("awareness", value.awareness).put("volume", value.volume);
+                .put("awareness", value.awareness).put("volume", value.volume).put("micGainDb", value.micGainDb).put("monitor", value.monitor).put("humHz", value.humHz);
     }
 
     @Override public void onTaskRemoved(Intent rootIntent) {

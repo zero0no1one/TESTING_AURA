@@ -1,12 +1,12 @@
 # AURA
 
-AURA 1.1 is a free, local-first Android listening app inspired by the supplied Project AURA proposal, concept note, presentation deck, and navy/pale-blue visual reference. It sends the phone microphone through basic speech-oriented audio processing to connected headphones. It is intended for personal experimentation and development, with clear limits on what the processing can do.
+AURA 1.2 is a free, local-first Android listening app inspired by the supplied Project AURA proposal, concept note, presentation deck, and navy/pale-blue visual reference. It sends the phone microphone through basic speech-oriented audio processing to connected headphones. It is intended for personal experimentation and development, with clear limits on what the processing can do.
 
 The upgraded app includes a Before–During–After flow, seven listening contexts, Personal Acoustic Profiles, session-specific settings and feedback, and optional Supabase Free accounts and metadata backup. Listening needs no account or internet. Cloud features need the one-time [Supabase setup](docs/SUPABASE_SETUP.md); the supplied project URL and publishable key are already configured. No subscription, paid API, or trial is required.
 
 ## Get it onto your Android phone
 
-1. Use the provided `dist/AURA-debug.apk`, or build the APK using the instructions below.
+1. [Download AURA 1.2 APK](https://github.com/zero0no1one/TESTING_AURA/raw/refs/heads/aura-download/AURA-1.2.apk) in Chrome on your phone, or build it using the instructions below.
 2. Follow [Android installation and first use](docs/ANDROID_INSTALL.md) to transfer it to your phone, install it, and grant microphone access.
 3. Connect wired or USB-C headphones, or compatible Bluetooth headphones. Start with the phone's media volume low and AURA's output at 25%.
 
@@ -17,7 +17,9 @@ The debug APK is signed for personal installation and testing. It is not a Play 
 ## What is included
 
 - A native Android microphone and playback service, with an ongoing notification and a Stop action.
-- Real-time speech-band filtering, adjustable basic noise reduction, output gain, compression, and a digital peak cap.
+- Real-time speech-band filtering, adjustable basic noise reduction, optional 0–24 dB microphone boost, compression, and a digital peak cap.
+- Phone/headset microphone selection, direct microphone comparison, optional 50/60 Hz hum notch, and live input/output/media-volume/underrun diagnostics.
+- Bundled YAMNet sound-category estimates on a background worker; no account, API key, model download, or paid service needed.
 - Care, Focus, and Commute presets, with adjustable listening settings.
 - An awareness control that mixes some less-processed microphone sound into the output.
 - Up to 20 context-aware profiles and 200 sessions with starting settings, ratings, and notes. Optional recommendations use the selected session and never increase current volume.
@@ -25,7 +27,7 @@ The debug APK is signed for personal installation and testing. It is not a Play 
 - Local JSON export/restore through the Android document picker, including compatibility with the original version 1 backups.
 - A bundled, mobile-first WebView interface. The interface and audio processing run on the phone without a network connection.
 
-This version does not isolate a chosen person, recognize alarms, or guarantee that environmental sounds remain audible. It does not implement trained AI models or claim a measured latency target. See [feature scope and limitations](docs/FEATURES.md) and the [proposal alignment matrix](docs/PROPOSAL_ALIGNMENT.md). The [security status](docs/SECURITY_STATUS.md) records implemented controls, test evidence, and the blocked Codex Security scan.
+This version adds offline YAMNet estimates for vocals, vehicles, air/wind and sirens. It does not isolate a chosen person, mute separate sound sources, guarantee warning audibility, or claim measured accuracy/latency. See [feature scope and limitations](docs/FEATURES.md) and the [proposal alignment matrix](docs/PROPOSAL_ALIGNMENT.md). The [security status](docs/SECURITY_STATUS.md) records implemented controls, test evidence, and the blocked Codex Security scan.
 
 ## Build for free
 
@@ -122,3 +124,9 @@ For longer-term use, create your own release signing key through Android Studio'
 An APK signed with a different key cannot replace the existing app in place. Export your local data first, uninstall the old build if necessary, install the newly signed build, then restore the backup. Do not share private signing keys or commit credentials.
 
 AURA saves no microphone recordings. Profile settings and session feedback stay on the device unless you explicitly export or back them up to Supabase. See [privacy and local data](docs/PRIVACY.md).
+
+## Audio and categories in 1.2
+
+For quiet vocals or buzzing, follow [the low-volume comparison steps](docs/AUDIO_TROUBLESHOOTING.md). The old defaults attenuated a quiet 400 Hz test signal by about 17 dB; microphone boost now lets the user compensate without automatically raising loudness. This does not establish the cause of every device’s buzz.
+
+Read [model provenance and limitations](docs/SOUND_MODEL.md) for the pinned weights, class groups, license, and offline smoke-test command. The proposed source separation and active acoustic noise cancellation are not implemented.

@@ -4,21 +4,23 @@ This file separates automated development checks from checks that require a phys
 
 ## Automated checks
 
-Results from AURA 1.1.0 (18 October 2026, Asia/Manila):
+Results from AURA 1.2.0 (18 October 2026, Asia/Manila):
 
 | Check | Command / method | Status |
 | --- | --- | --- |
-| Standalone audio-processing checks | `sh tests/audio/run.sh` | Passed: 512,022 sample-level assertions across generated signals at 16/48 kHz |
+| Standalone audio-processing checks | `sh tests/audio/run.sh` | Passed: 640,036 DSP assertions plus 15,608 resampler/category assertions at 16/48 kHz |
 | Debug APK compilation and packaging | `./gradlew :app:assembleDebug` | Passed; Android 8+ / target Android 15 |
 | Android static analysis | `./gradlew :app:lintDebug` | Passed with 0 errors and 2 reviewed warnings |
-| Web UI interaction checks | `npm run test:ui` | 35 passed; 1 duplicate screenshot check intentionally skipped; 320 px and 375 px widths |
-| JVM persistence/configuration checks | `./gradlew :app:testDebugUnitTest` | 11 passed (9 Robolectric storage/upgrade tests, 2 origin/key checks) |
-| Database ownership/constraint checks | `python3 tests/cloud/test_database.py` | 31 operations passed in isolated PostgreSQL; Auth identities simulated |
+| Web UI interaction checks | `npm run test:ui` | 41 passed; 1 duplicate screenshot check intentionally skipped; 320 px and 375 px widths |
+| JVM persistence/configuration checks | `./gradlew :app:testDebugUnitTest` | 12 passed (10 Robolectric storage/upgrade tests, 2 origin/key checks) |
+| Database ownership/constraint checks | `python3 tests/cloud/test_database.py` | 31 operations passed in 1.1; unchanged migration, not rerun for 1.2; Auth identities simulated |
 | Live Supabase end-to-end | Auth/recovery/backup/restore/deletion | Not run: project blocked by environment proxy; owner must install migration and test |
 | Codex Security plugin scan | Required capability preflight | Blocked: supporting skill resources/runtime unavailable; no scan pass claimed |
 | Android integration test APK | `./gradlew :app:assembleDebugAndroidTest` | Passed compilation; 8 runtime tests were not executed because emulator startup was blocked |
 | APK signature | Android SDK `apksigner verify --verbose` | Passed, APK Signature Scheme v2, same debug certificate as the delivered 1.0 APK |
-| APK contents and permissions | Android SDK `aapt dump badging` | Correct launch activity, version code 2, minSdk 26, targetSdk 35; INTERNET added for optional native Supabase only |
+| APK contents and permissions | Android SDK `aapt dump badging` | Correct launch activity, version code 3, minSdk 26, targetSdk 35; INTERNET added for optional native Supabase only |
+| Embedded model | `tests/models/test_model.py` in pinned Python test environment | Passed SHA-256/vocabulary/shapes and desktop smoke: Silence 0.801, Speech 0.918; no category-accuracy benchmark |
+| Native library / ZIP alignment | `readelf -lW` and SDK `zipalign -c -P 16 4` | Passed 16 KiB alignment check for packaged 64-bit LiteRT libraries and APK; physical 16 KiB Android device untested |
 | Source archive | ZIP integrity, required-file checks, and build from extracted source | Passed; source, wrappers, and docs included; local keys/SDKs/caches excluded |
 
 The two lint warnings are expected: the legacy-back opt-out attribute is ignored on Android versions before API 33, and JavaScript is enabled for the bundled local interface. The WebView blocks network loads and external navigation, disallows general file/content access, and renders user profile names and notes as text. Tests check text escaping. No lint checks were disabled.
@@ -69,3 +71,13 @@ Compare short speech samples in quiet, steady noise, and competing speech using 
 - Verify a failed cloud restore leaves current data intact. Confirm live listening stops before an accepted restore.
 - Run the Codex Security repository scan after its complete plugin is available. See [SECURITY_STATUS.md](SECURITY_STATUS.md); ordinary testing is not equivalent to that scan.
 - Attach the missing demo screens for exact UI comparison. Only the supplied waveform emblem and document terminology have been matched.
+
+## Additional 1.2 acceptance checks
+
+- Physical wired/USB-C vocal audibility and the reported vibrating sound remain **unverified**. No phone/headphones are attached here. Measure input/output dBFS, selected route, media volume and underruns using [Audio troubleshooting](AUDIO_TROUBLESHOOTING.md).
+- Verify Phone microphone and an actual headset microphone separately. Missing/changed input routes should stop with a useful message. Direct comparison should disable optional Android noise suppression while retaining volume/gain/limiter.
+- Compare direct and filtered listening at low volume; raise boost gradually only for quiet speech. Check 0 dB and +6/+12 dB, immediate mute, switching the notch/monitor, and saved profile recall.
+- The synthetic DSP regression confirms that switching direct comparison off after a silent interval does not replay stale hum-notch energy. It does not certify click-free audio on every phone.
+- Test classifier loading, categories off/on, unavailable status, live scores, stop/restart, CPU use and longer sessions. Compare underruns with categories off. Classification is pre-DSP and does not control playback.
+- The model smoke test covers one official speech sample and silence only. Vehicles, air/wind, sirens, simultaneous sounds, far-field speech and physical phone performance have **not** been benchmarked. Do not infer category accuracy or reliable emergency recognition from the smoke test.
+- Source review found and corrected stale notch state when toggling direct comparison. This was an ordinary correctness review, not a Codex Security scan.

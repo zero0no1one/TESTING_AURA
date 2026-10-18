@@ -29,6 +29,12 @@ public final class AppStore {
         put(result, "volume", 25);
         put(result, "context", "general");
         put(result, "profileName", "");
+        put(result, "micGainDb", 0);
+        put(result, "monitor", false);
+        put(result, "deviceSuppression", false);
+        put(result, "microphone", "phone");
+        put(result, "humHz", 0);
+        put(result, "soundCategories", true);
         return result;
     }
 
@@ -42,6 +48,13 @@ public final class AppStore {
         put(result, "context", validContext(listeningContext) ? listeningContext : "general");
         String profileName = source.optString("profileName", "").trim();
         put(result, "profileName", profileName.length() <= 40 ? profileName : "");
+        put(result, "micGainDb", Math.max(0, Math.min(24, source.optInt("micGainDb", 0))));
+        put(result, "monitor", source.optBoolean("monitor", false));
+        put(result, "deviceSuppression", source.optBoolean("deviceSuppression", false));
+        put(result, "microphone", "headset".equals(source.optString("microphone")) ? "headset" : "phone");
+        int humHz = source.optInt("humHz", 0);
+        put(result, "humHz", humHz == 50 || humHz == 60 ? humHz : 0);
+        put(result, "soundCategories", source.optBoolean("soundCategories", true));
         for (String key : new String[]{"clarity", "reduction", "awareness", "volume"}) {
             double value = source.optDouble(key, result.optInt(key));
             if (!Double.isFinite(value)) value = result.optInt(key);
@@ -168,6 +181,8 @@ public final class AppStore {
         // A new recommendation must never raise the user's current output volume.
         put(settings, "volume", Math.min(current.optInt("volume"), settings.optInt("volume")));
         put(settings, "profileName", "");
+        for (String key : new String[]{"micGainDb", "monitor", "deviceSuppression", "microphone", "humHz", "soundCategories"})
+            put(settings, key, current.opt(key));
         if ("difficult".equals(rating)) {
             put(settings, "clarity", settings.optInt("clarity") + 10);
             put(settings, "reduction", settings.optInt("reduction") - 5);
@@ -252,6 +267,11 @@ public final class AppStore {
         if (!isMode(source.getString("mode"))) throw new IllegalArgumentException("Invalid listening mode in backup.");
         if (source.has("context") && !validContext(source.getString("context"))) throw new IllegalArgumentException("Invalid listening context in backup.");
         if (source.has("profileName") && source.getString("profileName").length() > 40) throw new IllegalArgumentException("Invalid profile label in backup.");
+        if (source.has("micGainDb") && (!(source.get("micGainDb") instanceof Number) || !Double.isFinite(source.getDouble("micGainDb")) || source.getDouble("micGainDb") < 0 || source.getDouble("micGainDb") > 24)) throw new IllegalArgumentException("Microphone boost must be 0–24 dB.");
+        for (String key : new String[]{"monitor", "deviceSuppression", "soundCategories"})
+            if (source.has(key) && !(source.get(key) instanceof Boolean)) throw new IllegalArgumentException("Invalid audio option in backup.");
+        if (source.has("microphone") && !"phone".equals(source.getString("microphone")) && !"headset".equals(source.getString("microphone"))) throw new IllegalArgumentException("Invalid microphone selection.");
+        if (source.has("humHz") && (!(source.get("humHz") instanceof Number) || (source.getDouble("humHz") != 0 && source.getDouble("humHz") != 50 && source.getDouble("humHz") != 60))) throw new IllegalArgumentException("Invalid hum filter.");
         for (String key : new String[]{"clarity", "reduction", "awareness", "volume"}) {
             Object raw = source.get(key);
             if (!(raw instanceof Number)) throw new IllegalArgumentException("Invalid control value in backup.");

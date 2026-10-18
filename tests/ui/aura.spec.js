@@ -10,7 +10,7 @@ test('onboarding explains limitations and completes through the bridge', async (
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText('Headphones first');
-  await expect(dialog).toContainText('It does not isolate speakers or detect alarms.');
+  await expect(dialog).toContainText('It does not isolate speakers or protect warning sounds.');
   await expect(page.locator('.app-shell')).toHaveAttribute('inert', '');
   await dialog.getByRole('button', { name: 'Get comfortable' }).click();
   await expect(dialog).toBeHidden();
@@ -198,7 +198,7 @@ test('context prepares a useful preset while preserving volume', async ({ page }
   await page.getByRole('combobox', { name: 'Listening context', exact: true }).selectOption('consultation');
   await expect(page.getByRole('slider', { name: 'Speech clarity' })).toHaveValue('70');
   await expect(page.getByRole('slider', { name: 'Listening volume' })).toHaveValue('13');
-  expect(await commands(page)).toContainEqual({ type: 'settings', payload: { mode: 'care', clarity: 70, reduction: 45, awareness: 40, volume: 13, context: 'consultation', profileName: '' } });
+  expect(await commands(page)).toContainEqual({ type: 'settings', payload: { mode: 'care', clarity: 70, reduction: 45, awareness: 40, volume: 13, context: 'consultation', profileName: '', micGainDb: 0, monitor: false, deviceSuppression: false, microphone: 'phone', humHz: 0, soundCategories: true } });
   await page.reload();
   await expect(page.getByRole('combobox', { name: 'Listening context', exact: true })).toHaveValue('consultation');
 });
@@ -267,5 +267,50 @@ test('research features are clearly distinguished from available controls', asyn
   await navigate(page, 'Guide');
   await expect(page.locator('.capability-panel')).toContainText('Voice Focus');
   await expect(page.locator('.capability-panel')).toContainText('Not yet available');
-  await expect(page.locator('.capability-panel')).toContainText('cannot recognize or guarantee preservation of alarms');
+  await expect(page.locator('.capability-panel')).toContainText('no warning sound is isolated or guaranteed to remain audible');
+});
+
+test('microphone controls persist and presets preserve boost and capture choices', async ({ page }) => {
+  await installBridge(page);
+  await page.goto('/');
+  await page.getByRole('slider', { name: 'Microphone boost' }).fill('12');
+  await page.locator('#monitor').check();
+  await expect(page.locator('#deviceSuppression')).toBeDisabled();
+  await expect(page.locator('#humHz')).toBeDisabled();
+  await page.locator('#microphone').selectOption('headset');
+  await page.getByRole('button', { name: 'Focus More speech clarity' }).click();
+  await page.locator('#listening-context').selectOption('pharmacy');
+  await page.reload();
+  await expect(page.locator('#micGainDb')).toHaveValue('12');
+  await expect(page.locator('#micGainDb-value')).toHaveText('+12 dB');
+  await expect(page.locator('#monitor')).toBeChecked();
+  await expect(page.locator('#microphone')).toHaveValue('headset');
+  expect((await commands(page)).filter(c => c.type === 'settings').every(c => c.payload.micGainDb <= 24)).toBe(true);
+});
+
+test('category scores are read-only, age out, and clear on stop or disable', async ({ page }) => {
+  await installBridge(page, { engine: { status: 'listening', categories: { status: 'ready', message: 'Estimated sound categories', ageMs: 100, scores: { vocals: .91, vehicles: .12, air: .06, sirens: .03 } } } });
+  await page.goto('/');
+  await expect(page.locator('#value-vocals')).toHaveText('0.91');
+  await expect(page.getByRole('meter', { name: 'Vocals' })).toHaveAttribute('aria-valuetext', 'Model score 0.91');
+  await expect(page.locator('.sound-panel')).toContainText('not volume levels or accuracy percentages');
+  await page.evaluate(() => window.__setFixture({ engine: { ...window.__fixture.engine, categories: { ...window.__fixture.engine.categories, ageMs: 6000 } } }));
+  await expect(page.locator('#value-vocals')).toHaveText('—');
+  await expect(page.locator('#sound-status')).toHaveText('Waiting for a fresh estimate…');
+  await page.locator('#soundCategories').uncheck();
+  await expect(page.locator('#sound-status')).toHaveText('Sound categories are off.');
+  await page.locator('#soundCategories').check();
+  await page.getByRole('button', { name: 'Stop listening' }).click();
+  await expect(page.locator('#value-vocals')).toHaveText('—');
+  await expect(page.locator('#sound-status')).toHaveText('Start listening for estimates.');
+});
+
+test('audio diagnostics distinguish muted media and playback underruns', async ({ page }) => {
+  await installBridge(page, { engine: { status: 'listening', inputDbfs: -30, outputDbfs: -35, mediaVolume: 0, mediaMaximum: 15, underruns: 0, inputRoute: 'Phone: built-in', captureSource: 'Unprocessed microphone' } });
+  await page.goto('/');
+  await page.getByText('Live audio diagnostics', { exact: true }).click();
+  await expect(page.locator('#audio-advice')).toContainText('Phone media volume is muted');
+  await expect(page.locator('#audio-levels')).toHaveText('-30 dBFS / -35 dBFS');
+  await page.evaluate(() => window.__setFixture({ engine: { ...window.__fixture.engine, mediaVolume: 4, underruns: 5 } }));
+  await expect(page.locator('#audio-advice')).toContainText('Playback missed buffers');
 });

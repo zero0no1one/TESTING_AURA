@@ -14,17 +14,19 @@ The implementation is a free, local-first native Android prototype, upgraded wit
 - Session metadata, ratings, and optional feedback notes.
 - Local backup, restore, reset, privacy, and installation guidance.
 
-The output gain is attenuation-only: this version is not a high-gain hearing amplifier. Optional native Supabase authentication and database requests use INTERNET permission, HTTPS, a public publishable key, and a signed-in user token. There is no cloud audio inference or analytics endpoint. All live audio processing runs locally, and the bundled WebView still blocks network access.
+Optional microphone boost is user-controlled (0–24 dB), followed by compression, output volume and a digital peak cap. Boost defaults to 0 dB and increases all captured sounds. Optional native Supabase authentication and database requests use INTERNET permission, HTTPS, a public publishable key, and a signed-in user token. There is no cloud audio inference or analytics endpoint. All live audio processing runs locally, and the bundled WebView still blocks network access.
 
 ## Implemented first-version approach
 
 | Area | Behavior | Practical limit |
 | --- | --- | --- |
 | Speech enhancement | Speech-oriented filtering and adjustable EQ emphasize useful frequency ranges. | It can affect all voices and other sounds in those bands; it cannot identify the intended speaker. |
-| Noise reduction | A local adaptive expander reduces some quieter background sound; Android device noise suppression is used when available and reduction is enabled. | Loud, changing noise and competing speech remain difficult. Strong settings may soften speech or introduce artifacts. |
+| Noise reduction | A local adaptive expander reduces some quieter background sound; Android device noise suppression is opt-in, available only on some devices, and disabled during direct microphone comparison. | Loud, changing noise and competing speech remain difficult. Strong settings may soften speech or introduce artifacts. |
+| Category estimates | Offline YAMNet inference displays model scores for vocals, vehicles, air/wind and sirens. | Scores overlap and are not calibrated accuracy, sound levels, or separate audio tracks; errors and missed events are possible. No category controls the output. |
+| Input diagnostics | Explicit phone/headset input selection, direct comparison, levels, media volume and underruns. Optional narrow 50/60 Hz hum notch. | Direct comparison retains boost/compression/limiter; device capture processing can remain. A notch cannot fix arbitrary buzzing. |
 | Listening modes | Care, Focus, and Commute provide convenient control presets. | Presets are not medical hearing profiles or scientifically calibrated environments. |
 | Awareness | A controllable surroundings mix keeps some microphone sound from before the app's speech filtering and expansion. | Android's device noise suppressor may already have processed this sound. The mix does not recognize sirens, alarms, vehicles, or emergency events and cannot guarantee audibility. |
-| Output dynamics | Attenuation-only gain, compression, and a digital sample peak cap help manage output levels. | Headphone loudness depends on system volume and hardware. A sample cap is not a hearing-safety guarantee. |
+| Output dynamics | User-controlled microphone boost, output attenuation, compression, and a digital sample peak cap help manage output levels. | Headphone loudness depends on system volume and hardware. A sample cap is not a hearing-safety guarantee. |
 | Profiles | Users save and recall up to 20 listening profiles containing context and sound preferences. | The app does not perform an audiogram, diagnose hearing loss, or train a personalized AI model. |
 | Feedback | Each new session stores its initial context and settings. An optional reflection opens after listening. Accepted rule-based suggestions use that session's starting settings and never raise current volume. | Feedback can be included in a user-requested cloud backup. It does not train a model or automatically change settings. |
 | Background operation | Native microphone processing uses a foreground service and an ongoing notification. Audio-focus loss, headphone disconnection, and route changes stop listening; restart is deliberate. | Device policies and manufacturer power management may interrupt it. Route checks cannot guarantee that Android will never make a brief transition before notifying the app. |
@@ -33,7 +35,7 @@ The output gain is attenuation-only: this version is not a high-gain hearing amp
 ## Deliberately unclaimed capabilities
 
 - **Selected-speaker AI isolation:** no voice enrollment, speaker identity model, or separation model is included.
-- **Reliable emergency-sound preservation:** awareness is a mix setting, not sound classification.
+- **Reliable emergency-sound preservation:** awareness is a mix setting; the separate classifier does not preserve or reconstruct warnings.
 - **A guaranteed latency such as under 100 ms:** latency must be measured on real device/headphone combinations, particularly with Bluetooth. The displayed Processing time is DSP computation time for one block, not end-to-end latency.
 - **Clinical effectiveness:** the implementation has no medical certification and is not a replacement for professional hearing care or a fitted hearing aid.
 - **Recordings or live transcription:** no microphone recordings or speech-to-text service are included.

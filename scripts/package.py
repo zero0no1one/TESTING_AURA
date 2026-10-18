@@ -12,7 +12,7 @@ if not apk.is_file():
 out = root / "dist"
 out.mkdir(exist_ok=True)
 shutil.copy2(apk, out / "AURA-debug.apk")
-shutil.copy2(apk, out / "AURA-1.1.apk")
+shutil.copy2(apk, out / "AURA-1.2.apk")
 shutil.copy2(root / "docs/ANDROID_INSTALL.md", out / "INSTALL_ANDROID.md")
 shutil.copy2(root / "README.md", out / "BUILD_AND_RUN.md")
 shutil.copy2(root / "docs/VALIDATION.md", out / "VALIDATION.md")
@@ -34,7 +34,7 @@ with zipfile.ZipFile(out / "AURA-source.zip", "w", zipfile.ZIP_DEFLATED) as arch
 shutil.copy2(root / "docs/SUPABASE_SETUP.md", out / "SUPABASE_SETUP.md")
 shutil.copy2(root / "docs/SECURITY_STATUS.md", out / "SECURITY_STATUS.md")
 shutil.copy2(root / "supabase/migrations/202610180001_aura_backups.sql", out / "AURA-database.sql")
-names = ["AURA-debug.apk", "AURA-1.1.apk", "AURA-source.zip", "INSTALL_ANDROID.md", "BUILD_AND_RUN.md", "VALIDATION.md", "SUPABASE_SETUP.md", "SECURITY_STATUS.md", "AURA-database.sql"]
+names = ["AURA-debug.apk", "AURA-1.2.apk", "AURA-source.zip", "INSTALL_ANDROID.md", "BUILD_AND_RUN.md", "VALIDATION.md", "SUPABASE_SETUP.md", "SECURITY_STATUS.md", "AURA-database.sql"]
 lines = []
 for name in names:
     data = (out / name).read_bytes()

@@ -11,6 +11,7 @@ public final class AudioProcessorTest {
         lowLevelNoiseIsAttenuated();
         awarenessMixPreservesCapturedAudio();
         changingSettingsAndMute();
+        boostMonitorAndHum();
         invalidInputs();
         System.out.println("PASS: " + assertions + " DSP assertions (silence, peaks, frequency response, noise, awareness, settings, input bounds)");
     }
@@ -89,6 +90,40 @@ public final class AudioProcessorTest {
         processor.configure(null);
         processor.process(input, output, 0);
         check(processor.getSampleRate() == rate, "Sample rate changed unexpectedly");
+    }
+    private static void boostMonitorAndHum() {
+        for (int rate : new int[]{16000, 48000}) {
+            short[] input = sine(rate, 400, .003, 4), plain = new short[input.length], boosted = new short[input.length];
+            new AudioProcessor(rate, new AudioProcessor.Settings("care", 55, 35, 35, 25, 0, false, 0)).process(input, plain, input.length);
+            AudioProcessor processor = new AudioProcessor(rate, new AudioProcessor.Settings("care", 55, 35, 35, 25, 12, false, 0));
+            processor.process(input, boosted, input.length);
+            double ratio = rms(boosted, rate * 3) / rms(plain, rate * 3);
+            check(ratio > 3.8 && ratio < 4.2, "12 dB boost did not restore quiet signal: " + ratio);
+            short[] directInput = sine(rate, 60, .03, 4), direct = new short[directInput.length];
+            new AudioProcessor(rate, new AudioProcessor.Settings("focus", 100, 100, 0, 100, 0, true, 60)).process(directInput, direct, direct.length);
+            check(rms(direct, rate * 3) > .014, "Direct comparison failed to bypass filters and notch");
+            double hum = sineOutputRms(rate, 60, new AudioProcessor.Settings("care", 0, 0, 0, 100, 0, false, 60));
+            check(hum < .0001, "60 Hz notch failed at " + rate);
+            double voice = sineOutputRms(rate, 400, new AudioProcessor.Settings("care", 0, 0, 0, 100, 0, false, 60));
+            check(voice > .048, "Hum notch suppressed speech-band tone");
+            processor.configure(new AudioProcessor.Settings("care", 0, 0, 0, 100, 24, true, 0));
+            short[] loud = sine(rate, 1000, 1, 2), out = new short[loud.length];
+            processor.process(loud, out, loud.length);
+            for (short sample : out) check(Math.abs((int)sample) <= Math.ceil(AudioProcessor.PEAK_LIMIT * 32767), "Boost exceeded peak cap");
+            processor.configure(new AudioProcessor.Settings("care", 0, 0, 0, 0, 24, true, 0));
+            processor.process(loud, out, loud.length);
+            check(rms(out, 0) == 0, "Boost bypassed immediate mute");
+            processor = new AudioProcessor(rate, new AudioProcessor.Settings("care", 100, 100, 0, 100, 24, false, 50));
+            short[] silence = new short[rate]; processor.process(silence, silence, silence.length);
+            check(rms(silence, 0) == 0, "Boost/notch generated sound from silence");
+            short[] humInput = sine(rate, 50, .03, 1);
+            processor.process(humInput, new short[rate], rate);
+            processor.configure(new AudioProcessor.Settings("care", 0, 0, 100, 100, 24, true, 50));
+            processor.process(silence, silence, silence.length);
+            processor.configure(new AudioProcessor.Settings("care", 0, 0, 100, 100, 24, false, 50));
+            processor.process(silence, silence, silence.length);
+            check(rms(silence, 0) == 0, "Leaving direct comparison replayed stale hum filter state");
+        }
     }
     private static void invalidInputs() {
         AudioProcessor.Settings clamped = new AudioProcessor.Settings("unknown", -5, 500, -1, 200);

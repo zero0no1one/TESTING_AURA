@@ -1,4 +1,4 @@
-# Proposal alignment — AURA 1.1
+# Proposal alignment — AURA 1.2
 
 Sources reviewed: `PROJECT PROPOSAL_ PROJECT AURA (1).pdf`, `Black-JEK_ConceptNote_PSC11.pdf`, and `Black-JEK_PresentationDeck_PSC11.pdf`. These describe the intended product and research objectives. The user's requirements govern implementation: Android APK, free tools/services, no paid APIs/trials, local audio, and optional Supabase Free metadata storage.
 
@@ -12,8 +12,8 @@ The documents identify the purpose as improving speech understanding in noisy en
 | After-session personalization | Optional Clear/Okay/Difficult feedback; visible setting recommendation based on that session. User chooses whether to apply it; current volume never increases. | No automatic/trained acoustic adaptation. Older sessions without snapshots use current settings and are identified as such. |
 | Privacy/local-first (concept note, Privacy-by-Design) | Microphone → local DSP → headphones; no audio files/upload. Cloud backup is explicit and limited to metadata. | Cloud metadata is not end-to-end encrypted and can be read by the project administrator. |
 | Voice Focus: target-speaker enrollment/isolation | Product capability status explicitly identifies this as unavailable. Existing speech-band filtering remains available. | No speaker enrollment, identity embedding, or separation model. This flagship proposal objective is not complete. |
-| Selective Awareness: at least five independently processed sound categories | Current processing is speech-oriented filtering, an adaptive expander, available Android noise suppression, and a surroundings mix. | No semantic classifier or source-by-source reconstruction. |
-| Safe Awareness: preserve alarms, sirens, horns | Surroundings mix is adjustable; limitations are shown. | No event detector, protected threshold, or guarantee that warnings remain audible. |
+| Selective Awareness: at least five independently processed sound categories | Four offline YAMNet display groups: vocals, vehicles, air/wind and sirens. DSP and opt-in device noise suppression affect the whole mixture. | Four estimated categories, not five independently processed tracks. No source-by-source reconstruction or category muting. |
+| Safe Awareness: preserve alarms, sirens, horns | Surroundings mix is adjustable and siren model scores are displayed; limitations are shown. | No validated alert system, protected threshold, or guarantee that warnings remain audible. |
 | ≤100 ms latency and improved intelligibility | Processing-block timing is displayed accurately as processing time. | End-to-end latency and speech-in-noise benefit need physical device/headphone measurements and human evaluation. |
 | Healthcare validation | Context and guidance support experimentation. | No clinical validation, certification, pilot outcome, or medical claim. |
 | AURA SDK, institutional device management, pricing | Not part of the native prototype. | Future product/business work. Document prices do not create paywalls in this free app. |

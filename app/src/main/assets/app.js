@@ -95,7 +95,7 @@
     ],
     commute: [
       "Public transport",
-      "Keep more surroundings audible. No warning-sound detection; do not rely on AURA near traffic.",
+      "Keep more surroundings audible. Sound estimates cannot protect warnings; do not rely on AURA near traffic.",
       "commute",
       35,
       20,
@@ -132,7 +132,14 @@
   let knownSessionIds = new Set();
   let reflectAfterStop = false;
   const appliedSuggestions = new Set();
-  const sliderIds = ["clarity", "reduction", "awareness", "volume"];
+  const sliderIds = [
+    "clarity",
+    "reduction",
+    "awareness",
+    "volume",
+    "micGainDb",
+  ];
+  const toggleIds = ["monitor", "deviceSuppression", "soundCategories"];
 
   function icon(name) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -162,9 +169,26 @@
       context: "general",
       profileName: "",
       ...presets.care,
+      micGainDb: 0,
+      monitor: false,
+      deviceSuppression: false,
+      microphone: "phone",
+      humHz: 0,
+      soundCategories: true,
       ...settings,
     };
-    sliderIds.forEach((key) => (result[key] = clamp(result[key])));
+    sliderIds.forEach(
+      (key) =>
+        (result[key] = Math.min(
+          key === "micGainDb" ? 24 : 100,
+          clamp(result[key]),
+        )),
+    );
+    toggleIds.forEach((key) => (result[key] = result[key] === true));
+    result.microphone = result.microphone === "headset" ? "headset" : "phone";
+    result.humHz = [50, 60].includes(Number(result.humHz))
+      ? Number(result.humHz)
+      : 0;
     if (!presets[result.mode]) result.mode = "care";
     if (!contexts[result.context]) result.context = "general";
     return result;
@@ -253,9 +277,16 @@
   }
   function sliderVisual(id, value) {
     const slider = $(id);
-    slider.style.setProperty("--value", value + "%");
-    slider.setAttribute("aria-valuetext", value + " percent");
-    text(id + "-value", value + "%");
+    const boost = id === "micGainDb";
+    slider.style.setProperty(
+      "--value",
+      (boost ? (value / 24) * 100 : value) + "%",
+    );
+    slider.setAttribute(
+      "aria-valuetext",
+      value + (boost ? " decibels" : " percent"),
+    );
+    text(id + "-value", boost ? "+" + value + " dB" : value + "%");
   }
   function renderSettings() {
     const settings = state.settings;
@@ -276,6 +307,13 @@
       "context-description",
       (contexts[settings.context] || contexts.general)[1],
     );
+    toggleIds.forEach((id) => {
+      $(id).checked = settings[id];
+    });
+    $("microphone").value = settings.microphone;
+    $("humHz").value = String(settings.humHz);
+    $("deviceSuppression").disabled = !native || settings.monitor;
+    $("humHz").disabled = !native || settings.monitor;
     text("active-profile", settings.profileName || "Personal settings");
     text(
       "profile-summary",
@@ -378,6 +416,78 @@
         ? processMs.toFixed(1) + " ms"
         : "—",
     );
+    const outputDb = Number(engine.outputDbfs);
+    const readableLevel = (value) =>
+      value != null && Number.isFinite(Number(value))
+        ? Math.round(Number(value)) + " dBFS"
+        : "—";
+    text(
+      "audio-input-route",
+      listening ? engine.inputRoute || "Not reported" : "—",
+    );
+    text(
+      "audio-source",
+      listening ? engine.captureSource || "Not reported" : "—",
+    );
+    text(
+      "audio-levels",
+      listening
+        ? readableLevel(engine.inputDbfs) +
+            " / " +
+            readableLevel(engine.outputDbfs)
+        : "—",
+    );
+    text(
+      "audio-media",
+      listening && engine.mediaMaximum
+        ? engine.mediaVolume + " / " + engine.mediaMaximum
+        : "—",
+    );
+    text(
+      "audio-underruns",
+      listening && engine.underruns != null ? engine.underruns : "—",
+    );
+    text(
+      "audio-advice",
+      !listening
+        ? "Start listening to inspect the microphone and playback path."
+        : engine.mediaVolume === 0
+          ? "Phone media volume is muted. Raise it gently with your phone’s volume buttons."
+          : hasLevel && db < -60
+            ? "The microphone signal is very quiet. Speak near the selected microphone or try the other input before raising boost."
+            : Number(engine.underruns) > 0
+              ? "Playback missed buffers. Turn off sound categories and compare; close other audio apps."
+              : engine.outputDbfs != null && outputDb < -50
+                ? "Output is quiet. Try direct microphone comparison and increase boost gradually."
+                : "For buzzing, compare direct microphone mode first. These digital levels do not measure headphone loudness.",
+    );
+    const categories = engine.categories || {};
+    const fresh =
+      listening &&
+      state.settings.soundCategories &&
+      categories.status === "ready" &&
+      Number(categories.ageMs) <= 5000;
+    text(
+      "sound-status",
+      !state.settings.soundCategories
+        ? "Sound categories are off."
+        : !listening
+          ? "Start listening for estimates."
+          : categories.status === "ready" && !fresh
+            ? "Waiting for a fresh estimate…"
+            : categories.message || "Preparing offline sound estimates…",
+    );
+    ["vocals", "vehicles", "air", "sirens"].forEach((key) => {
+      const score =
+        fresh && categories.scores ? Number(categories.scores[key]) : NaN;
+      const valid = Number.isFinite(score) && score >= 0 && score <= 1;
+      $("score-" + key).value = valid ? score : 0;
+      $("score-" + key).setAttribute(
+        "aria-valuetext",
+        valid ? "Model score " + score.toFixed(2) : "No current estimate",
+      );
+      text("value-" + key, valid ? score.toFixed(2) : "—");
+    });
     const weights = [0.3, 0.7, 1, 0.7, 0.3];
     document.querySelectorAll(".wave-bars i").forEach((bar, index) => {
       // Every live bar is derived from the current input RMS reading. There is no simulated animation.
@@ -822,7 +932,7 @@
       el(
         "p",
         "fine-print",
-        "An experimental listening aid, not a medical device. It does not isolate speakers or detect alarms. Never rely on it for safety.",
+        "An experimental listening aid, not a medical device. It does not isolate speakers or protect warning sounds. Never rely on it for safety.",
       ),
     );
     action("Get comfortable", () => {
@@ -993,6 +1103,7 @@
     if (!selected) return;
     clearTimeout(settingsTimer);
     state.settings = {
+      ...state.settings,
       mode: selected[2],
       clarity: selected[3],
       reduction: selected[4],
@@ -1023,6 +1134,7 @@
     button.addEventListener("click", () => {
       clearTimeout(settingsTimer);
       state.settings = {
+        ...state.settings,
         ...presets[button.dataset.mode],
         volume: state.settings.volume,
         context: state.settings.context || "general",
@@ -1037,7 +1149,10 @@
     const slider = $(id);
     slider.disabled = !native;
     slider.addEventListener("input", () => {
-      state.settings[id] = clamp(slider.value);
+      state.settings[id] = Math.min(
+        id === "micGainDb" ? 24 : 100,
+        clamp(slider.value),
+      );
       state.settings.profileName = "";
       settingsUntil = Date.now() + 1100;
       sliderVisual(id, state.settings[id]);
@@ -1056,6 +1171,22 @@
   });
   document.querySelectorAll("[data-mode]").forEach((button) => {
     button.disabled = !native;
+  });
+  [...toggleIds, "microphone", "humHz"].forEach((id) => {
+    $(id).disabled = !native;
+    $(id).addEventListener("change", () => {
+      clearTimeout(settingsTimer);
+      state.settings[id] = toggleIds.includes(id)
+        ? $(id).checked
+        : id === "humHz"
+          ? Number($(id).value)
+          : $(id).value;
+      state.settings.profileName = "";
+      settingsUntil = Date.now() + 800;
+      command("settings", state.settings);
+      renderSettings();
+      renderEngine();
+    });
   });
   $("new-profile").addEventListener("click", profileDialog);
   $("save-profile-shortcut").addEventListener("click", profileDialog);

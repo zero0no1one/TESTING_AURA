@@ -40,6 +40,27 @@ public class AppStoreJvmTest {
         assertEquals("care", AppStore.settings(context).getString("mode"));
     }
 
+    @Test public void audioControlsRoundTripAndLegacyDefaults() throws Exception {
+        JSONObject value = AppStore.defaults().put("micGainDb", 12).put("monitor", true).put("microphone", "headset").put("humHz", 60).put("soundCategories", false);
+        AppStore.setSettings(context, value);
+        String backup = AppStore.exportData(context).toString();
+        AppStore.reset(context); AppStore.importData(context, backup);
+        assertEquals(12, AppStore.settings(context).getInt("micGainDb"));
+        assertTrue(AppStore.settings(context).getBoolean("monitor"));
+        assertFalse(AppStore.settings(context).getBoolean("soundCategories"));
+        assertEquals("headset", AppStore.settings(context).getString("microphone"));
+        JSONObject legacy = new JSONObject(backup);
+        for (String key : new String[]{"micGainDb", "monitor", "deviceSuppression", "microphone", "humHz", "soundCategories"}) legacy.getJSONObject("settings").remove(key);
+        AppStore.importData(context, legacy.toString());
+        assertEquals(0, AppStore.settings(context).getInt("micGainDb"));
+        assertTrue(AppStore.settings(context).getBoolean("soundCategories"));
+        assertFalse(AppStore.settings(context).getBoolean("deviceSuppression"));
+        for (Object bad : new Object[]{25, -1, "12"}) {
+            JSONObject invalid = new JSONObject(backup); invalid.getJSONObject("settings").put("micGainDb", bad);
+            try { AppStore.importData(context, invalid.toString()); fail("Invalid boost accepted"); } catch (IllegalArgumentException expected) { }
+        }
+    }
+
     @Test public void profileSaveLoadDeletePersists() throws Exception {
         AppStore.setSettings(context, AppStore.defaults().put("clarity", 73));
         AppStore.saveProfile(context, "Clinic");
@@ -114,7 +135,7 @@ public class AppStoreJvmTest {
         JSONObject initial = AppStore.defaults().put("context", "consultation").put("clarity", 70).put("reduction", 45).put("profileName", "My clinic").put("volume", 35);
         AppStore.recordSession(context, initial, 10000, 30);
         initial.put("clarity", 0);
-        AppStore.setSettings(context, AppStore.defaults().put("context", "commute").put("volume", 12));
+        AppStore.setSettings(context, AppStore.defaults().put("context", "commute").put("volume", 12).put("micGainDb", 6).put("monitor", true).put("microphone", "headset"));
         String id = AppStore.sessions(context).getJSONObject(0).getString("id");
         AppStore.feedback(context, id, "difficult", "Try again");
         AppStore.applySuggestion(context, id);
@@ -123,6 +144,9 @@ public class AppStoreJvmTest {
         assertEquals(80, actual.getInt("clarity"));
         assertEquals(40, actual.getInt("reduction"));
         assertEquals(12, actual.getInt("volume"));
+        assertEquals(6, actual.getInt("micGainDb"));
+        assertTrue(actual.getBoolean("monitor"));
+        assertEquals("headset", actual.getString("microphone"));
         assertEquals(70, AppStore.sessions(context).getJSONObject(0).getJSONObject("settings").getInt("clarity"));
     }
 

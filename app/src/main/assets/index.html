@@ -339,7 +339,8 @@
                     step="1"
                   />
                   <p>
-                    Mixes captured microphone sound back in. No alarm detection.
+                    Mixes captured microphone sound back in. Does not protect
+                    warning sounds.
                   </p>
                 </div>
                 <div class="slider-control">
@@ -358,6 +359,171 @@
                   <p>Works alongside your phone’s media volume.</p>
                 </div>
               </section>
+              <section
+                class="panel audio-tools"
+                aria-labelledby="audio-tools-heading"
+              >
+                <h2 id="audio-tools-heading">Hear your voice clearly</h2>
+                <p>
+                  Speak near the selected microphone. Start with low phone
+                  volume, then raise microphone boost gradually if speech is
+                  quiet.
+                </p>
+                <div class="slider-control">
+                  <div class="slider-label">
+                    <label for="micGainDb">Microphone boost</label
+                    ><output id="micGainDb-value" for="micGainDb">+0 dB</output>
+                  </div>
+                  <input
+                    type="range"
+                    id="micGainDb"
+                    min="0"
+                    max="24"
+                    step="1"
+                    value="0"
+                  />
+                  <p>
+                    Boosts all captured sound, including noise. The digital
+                    limiter cannot guarantee a safe headphone loudness.
+                  </p>
+                </div>
+                <label for="microphone">Microphone source</label>
+                <select id="microphone">
+                  <option value="phone">Phone microphone</option>
+                  <option value="headset">
+                    Wired / USB headset microphone
+                  </option>
+                </select>
+                <p>
+                  Changing the microphone stops listening. Tap Start again.
+                  Headphones without a microphone require Phone microphone.
+                </p>
+                <label class="check-setting"
+                  ><input type="checkbox" id="monitor" />Direct microphone
+                  comparison</label
+                >
+                <p>
+                  Bypasses AURA’s filters and device noise suppression. Boost,
+                  volume and limiter stay active. If buzzing remains, check the
+                  input meter, cable and microphone source.
+                </p>
+                <label class="check-setting"
+                  ><input type="checkbox" id="deviceSuppression" />Use Android
+                  noise suppression</label
+                >
+                <p>
+                  Optional and device-dependent; leave off if voices sound
+                  distorted.
+                </p>
+                <label for="humHz">Steady electrical hum filter</label>
+                <select id="humHz">
+                  <option value="0">Off</option>
+                  <option value="50">50 Hz notch</option>
+                  <option value="60">60 Hz notch</option>
+                </select>
+                <p>
+                  A narrow filter for steady mains hum, not a general fix for
+                  buzzing. Inactive during direct comparison.
+                </p>
+                <details class="audio-diagnostics">
+                  <summary>Live audio diagnostics</summary>
+                  <dl>
+                    <div>
+                      <dt>Selected input route</dt>
+                      <dd id="audio-input-route">—</dd>
+                    </div>
+                    <div>
+                      <dt>Capture source</dt>
+                      <dd id="audio-source">—</dd>
+                    </div>
+                    <div>
+                      <dt>Input / output level</dt>
+                      <dd id="audio-levels">—</dd>
+                    </div>
+                    <div>
+                      <dt>Phone media volume</dt>
+                      <dd id="audio-media">—</dd>
+                    </div>
+                    <div>
+                      <dt>Playback buffer underruns</dt>
+                      <dd id="audio-underruns">—</dd>
+                    </div>
+                  </dl>
+                  <p id="audio-advice">
+                    Start listening to inspect the microphone and playback path.
+                  </p>
+                </details>
+              </section>
+              <section
+                class="panel sound-panel"
+                aria-labelledby="sounds-heading"
+              >
+                <div class="section-heading">
+                  <h2 id="sounds-heading">Sounds around you</h2>
+                  <span>On-device AI</span>
+                </div>
+                <label class="check-setting"
+                  ><input type="checkbox" id="soundCategories" checked />Show
+                  sound categories</label
+                >
+                <p id="sound-status" role="status">
+                  Start listening for estimates.
+                </p>
+                <div class="sound-score">
+                  <label for="score-vocals">Vocals</label
+                  ><meter
+                    id="score-vocals"
+                    aria-label="Vocals"
+                    min="0"
+                    max="1"
+                    value="0"
+                  ></meter
+                  ><output id="value-vocals">—</output>
+                </div>
+                <div class="sound-score">
+                  <label for="score-vehicles">Vehicles</label
+                  ><meter
+                    id="score-vehicles"
+                    aria-label="Vehicles"
+                    min="0"
+                    max="1"
+                    value="0"
+                  ></meter
+                  ><output id="value-vehicles">—</output>
+                </div>
+                <div class="sound-score">
+                  <label for="score-air">Air / wind</label
+                  ><meter
+                    id="score-air"
+                    aria-label="Air / wind"
+                    min="0"
+                    max="1"
+                    value="0"
+                  ></meter
+                  ><output id="value-air">—</output>
+                </div>
+                <div class="sound-score">
+                  <label for="score-sirens">Sirens</label
+                  ><meter
+                    id="score-sirens"
+                    aria-label="Sirens"
+                    min="0"
+                    max="1"
+                    value="0"
+                  ></meter
+                  ><output id="value-sirens">—</output>
+                </div>
+                <p>
+                  YAMNet model scores, not volume levels or accuracy
+                  percentages. Several categories can overlap. Estimates use
+                  about one second of sound and can miss or mislabel sounds.
+                </p>
+                <p>
+                  This identifies likely sounds; it does not separate voices,
+                  mute individual categories, or protect warning sounds. Never
+                  rely on it for traffic or emergency alerts.
+                </p>
+              </section>
               <aside class="privacy-card">
                 <span class="privacy-icon"
                   ><svg class="icon"><use href="#i-shield" /></svg
@@ -365,8 +531,8 @@
                 <div>
                   <h3>Your conversations stay yours.</h3>
                   <p>
-                    Audio is processed on your phone. It is never recorded,
-                    saved, or sent anywhere.
+                    Audio is processed in temporary memory on your phone. It is
+                    never saved or sent anywhere.
                   </p>
                 </div>
               </aside>
@@ -605,14 +771,16 @@
                   Care starts gently, Focus emphasizes speech more, and Commute
                   includes more surrounding sound. These are adjustable presets.
                   AURA does not use cloud AI, identify or isolate a particular
-                  speaker, transcribe speech, or recognize alarms.
+                  speaker, or transcribe speech. The bundled YAMNet model
+                  estimates vocals, vehicles, air/wind and sirens offline. It
+                  can be wrong and never separates or protects those sounds.
                 </p>
                 <p>
-                  Device noise suppression is used when Android makes it
-                  available; it can also affect the sound used for the
-                  surroundings blend. Sound quality depends on your microphone,
-                  headphones, surroundings, and phone. It cannot remove every
-                  kind of noise.
+                  Device noise suppression is off by default. If you enable it
+                  and Android supports it, it can also affect the sound used for
+                  the surroundings blend. Sound quality depends on your
+                  microphone, headphones, surroundings, and phone. It cannot
+                  remove every kind of noise.
                 </p>
               </div>
             </details>
@@ -733,8 +901,8 @@
               <div>
                 <dt>Safe Awareness</dt>
                 <dd>
-                  Not yet available · surroundings blend cannot recognize or
-                  guarantee preservation of alarms, sirens, or horns.
+                  Not yet available · offline siren estimates are shown, but no
+                  warning sound is isolated or guaranteed to remain audible.
                 </dd>
               </div>
             </dl>
@@ -750,7 +918,7 @@
               ></span>
               <div>
                 <h2>AURA</h2>
-                <p>Local-first listening · Version 1.1</p>
+                <p>Local-first listening · Version 1.2</p>
               </div>
             </div>
             <p>

@@ -44,3 +44,7 @@ Nothing is backed up automatically. When you confirm **Back up now**, settings, 
 **Delete cloud backup** removes the database row; **Delete cloud account** removes the signed-in Auth identity and its associated backup in the dedicated AURA project. Copies on phones, manually exported files, and provider-retained logs/backups are separate. Supabase's applicable retention practices also apply. Local sign-out clears this phone's tokens and makes a best-effort request to revoke that session; when offline, server revocation cannot be guaranteed. Existing access tokens elsewhere may remain valid until their normal expiry.
 
 Free-plan availability, email delivery, and project inactivity can affect account actions. See [setup and limits](SUPABASE_SETUP.md). A completed security audit is not claimed; see [security status](SECURITY_STATUS.md).
+
+## Local sound classification
+
+The bundled YAMNet model uses two reusable PCM windows of about 0.975 seconds each plus temporary inference buffers in memory. Windows are overwritten as listening continues; the worker clears completed PCM windows, and shutdown clears the reusable buffers and releases the model. JVM/native memory release is not a forensic erasure guarantee. Neither PCM, model-input windows nor category predictions are written to files, stored in session history, included in backups, or sent to Supabase. You can turn sound categories off while continuing to listen. No model download happens at runtime.
