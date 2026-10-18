@@ -1,0 +1,12 @@
+{
+  "name": "aura-android-ui-checks",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser-only UI and JavaScript bridge contract checks; not Android audio validation.",
+  "scripts": {
+    "test:ui": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}

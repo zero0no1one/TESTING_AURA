@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">AURA</string>
+    <string name="cloud_setup_help">Use a dedicated Supabase Free project with the AURA SQL migration installed. Only public client keys belong here. Changing projects signs you out; it does not delete your data.</string>
+    <string name="cloud_credentials_help">Credentials go directly to %1$s. Your password is not saved by AURA. Creating an account may require email confirmation.</string>
+    <string name="cloud_recovery_help">Request an email code, then enter it with a new password. The project owner must configure the recovery email code template in the setup guide.</string>
+</resources>

@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#11151f" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' data:; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>AURA · Understand the voice that matters</title>
+    <link rel="stylesheet" href="app.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <svg
+      class="svg-library"
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <symbol id="i-wave" viewBox="0 0 24 24">
+          <path d="M4 10v4m4-8v12m4-16v20m4-16v12m4-8v4" />
+        </symbol>
+        <symbol id="i-ear" viewBox="0 0 24 24">
+          <path
+            d="M8 17c1 0 1 4 4 4s4-3 4-5c0-3 4-4 4-9a8 8 0 0 0-16 0m4 1a4 4 0 0 1 8 0c0 3-4 3-4 6m-4-3v2"
+          />
+        </symbol>
+        <symbol id="i-profile" viewBox="0 0 24 24">
+          <circle cx="12" cy="7" r="4" />
+          <path d="M4 21v-2a8 8 0 0 1 16 0v2" />
+        </symbol>
+        <symbol id="i-clock" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </symbol>
+        <symbol id="i-book" viewBox="0 0 24 24">
+          <path
+            d="M12 5c-3-2-6-2-10-1v15c4-1 7-1 10 1 3-2 6-2 10-1V4c-4-1-7-1-10 1v15"
+          />
+        </symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24">
+          <path d="m12 2 8 3v7c0 5-8 10-8 10S4 17 4 12V5z" />
+          <path d="m8 11 3 3 5-5" />
+        </symbol>
+        <symbol id="i-headphones" viewBox="0 0 24 24">
+          <path d="M4 16v-5a8 8 0 0 1 16 0v5" />
+          <rect x="2" y="12" width="5" height="9" rx="2" />
+          <rect x="17" y="12" width="5" height="9" rx="2" />
+        </symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"
+          />
+        </symbol>
+        <symbol id="i-focus" viewBox="0 0 24 24">
+          <path d="M8 3H3v5m13-5h5v5M3 16v5h5m8 0h5v-5" />
+          <circle cx="12" cy="12" r="4" />
+        </symbol>
+        <symbol id="i-train" viewBox="0 0 24 24">
+          <rect x="5" y="2" width="14" height="17" rx="4" />
+          <path d="M5 10h14M9 22l2-3m4 3-2-3M8 15h1m6 0h1" />
+        </symbol>
+        <symbol id="i-play" viewBox="0 0 24 24">
+          <path d="m8 4 12 8-12 8z" />
+        </symbol>
+        <symbol id="i-stop" viewBox="0 0 24 24">
+          <rect x="6" y="6" width="12" height="12" rx="2" />
+        </symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12h14" />
+        </symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24">
+          <path d="M5 12h14m-6-6 6 6-6 6" />
+        </symbol>
+        <symbol id="i-check" viewBox="0 0 24 24">
+          <path d="m5 12 4 4L19 6" />
+        </symbol>
+        <symbol id="i-close" viewBox="0 0 24 24">
+          <path d="m6 6 12 12M6 18 18 6" />
+        </symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24">
+          <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7" />
+        </symbol>
+        <symbol id="i-download" viewBox="0 0 24 24">
+          <path d="M12 3v12m-5-5 5 5 5-5M4 15v6h16v-6" />
+        </symbol>
+        <symbol id="i-upload" viewBox="0 0 24 24">
+          <path d="M12 15V3m-5 5 5-5 5 5M4 15v6h16v-6" />
+        </symbol>
+        <symbol id="i-info" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v6m0-10v1" />
+        </symbol>
+        <symbol id="i-settings" viewBox="0 0 24 24">
+          <path d="M4 7h16M4 17h16" />
+          <circle cx="9" cy="7" r="3" />
+          <circle cx="16" cy="17" r="3" />
+        </symbol>
+      </defs>
+    </svg>
+    <div class="app-shell">
+      <header class="app-header">
+        <a class="brand" href="#listen" aria-label="AURA home"
+          ><span class="brand-mark"
+            ><svg class="icon"><use href="#i-wave" /></svg></span
+          ><span
+            >AURA<span class="brand-caption"
+              >Understand the voice that matters.</span
+            ></span
+          ></a
+        >
+        <span class="privacy-pill"
+          ><span class="privacy-dot"></span>Audio stays on-device</span
+        >
+      </header>
+      <div id="notice" class="notice" role="status" hidden></div>
+      <main id="main">
+        <section id="page-listen" class="page" aria-labelledby="listen-heading">
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">YOUR LISTENING SPACE</p>
+              <h1 id="listen-heading">
+                Understand the voice<br />that matters.
+              </h1>
+            </div>
+            <span class="small-label" id="mode-summary">Care mode</span>
+          </div>
+          <div class="listening-journey" aria-label="Your listening journey">
+            <button class="journey-step active" id="journey-before">
+              <span>01</span><strong>Before</strong><small>Prepare</small>
+            </button>
+            <button class="journey-step" id="journey-during">
+              <span>02</span><strong>During</strong><small>Listen</small>
+            </button>
+            <button class="journey-step" data-navigate="sessions">
+              <span>03</span><strong>After</strong><small>Reflect</small>
+            </button>
+          </div>
+          <section
+            class="panel preparation-panel"
+            id="preparation"
+            aria-labelledby="context-heading"
+          >
+            <div class="section-heading">
+              <h2 id="context-heading">Where will you listen?</h2>
+              <span class="small-label">Your context</span>
+            </div>
+            <label class="context-label" for="listening-context"
+              >Listening context</label
+            >
+            <select id="listening-context">
+              <option value="general">Everyday conversation</option>
+              <option value="consultation">Medical consultation</option>
+              <option value="pharmacy">At the pharmacy</option>
+              <option value="caregiving">With a caregiver</option>
+              <option value="family">Family &amp; friends</option>
+              <option value="study">Classroom &amp; work</option>
+              <option value="commute">Public transport</option>
+            </select>
+            <p id="context-description">
+              A balanced starting point for everyday speech.
+            </p>
+            <div class="preparation-footer">
+              <span id="active-profile">Personal settings</span
+              ><button class="text-button" data-navigate="profiles">
+                Choose a profile
+              </button>
+            </div>
+          </section>
+          <div class="listen-layout">
+            <div class="listen-primary">
+              <section
+                class="listening-card"
+                id="live-listening"
+                aria-label="Listening controls"
+              >
+                <div class="card-topline">
+                  <span class="status-pill" id="status-pill"
+                    ><span></span
+                    ><span id="status-text">Ready when you are</span></span
+                  ><span
+                    id="session-clock"
+                    class="session-clock"
+                    aria-label="Session duration"
+                    >00:00</span
+                  >
+                </div>
+                <div class="orb-wrap" aria-hidden="true">
+                  <div class="orb-dots"></div>
+                  <div class="orb-ring"></div>
+                  <div class="orb-inner">
+                    <div class="wave-bars">
+                      <i></i><i></i><i></i><i></i><i></i>
+                    </div>
+                  </div>
+                  <span class="orb-spark one"></span
+                  ><span class="orb-spark two"></span>
+                </div>
+                <h2 id="listening-title">A little more connection.</h2>
+                <p id="listening-description" class="hero-description">
+                  Prepare your context, then bring speech into focus.<br />Connect
+                  your headphones to begin.
+                </p>
+                <button id="listen-toggle" class="button primary listen-toggle">
+                  <svg class="icon"><use href="#i-play" /></svg
+                  ><span>Start listening</span>
+                </button>
+                <p class="route-status" id="route-status">
+                  <svg class="icon"><use href="#i-headphones" /></svg
+                  ><span>Checking your headphones…</span>
+                </p>
+                <div class="live-meters" id="live-meters" hidden>
+                  <div>
+                    <span>Microphone</span
+                    ><meter
+                      id="input-meter"
+                      min="-80"
+                      max="0"
+                      value="-80"
+                      aria-label="Microphone signal level"
+                    ></meter>
+                  </div>
+                  <div>
+                    <span>Processing</span
+                    ><strong id="processing-value">—</strong>
+                  </div>
+                </div>
+              </section>
+              <div class="safety-note">
+                <svg class="icon"><use href="#i-headphones" /></svg>
+                <p>
+                  Start with low phone and app volume. Wired or USB-C headphones
+                  give the least delay.
+                </p>
+              </div>
+              <section class="mode-section" aria-labelledby="mode-heading">
+                <div class="section-heading">
+                  <h2 id="mode-heading">Find your rhythm</h2>
+                  <span>Listening modes</span>
+                </div>
+                <div class="mode-grid" role="group" aria-label="Listening mode">
+                  <button
+                    class="mode-button selected"
+                    data-mode="care"
+                    aria-pressed="true"
+                  >
+                    <svg class="icon"><use href="#i-sun" /></svg
+                    ><strong>Care</strong><span>Gentle &amp; balanced</span
+                    ><span class="selected-dot"></span>
+                  </button>
+                  <button
+                    class="mode-button"
+                    data-mode="focus"
+                    aria-pressed="false"
+                  >
+                    <svg class="icon"><use href="#i-focus" /></svg
+                    ><strong>Focus</strong><span>More speech clarity</span
+                    ><span class="selected-dot"></span>
+                  </button>
+                  <button
+                    class="mode-button"
+                    data-mode="commute"
+                    aria-pressed="false"
+                  >
+                    <svg class="icon"><use href="#i-train" /></svg
+                    ><strong>Commute</strong><span>More surroundings</span
+                    ><span class="selected-dot"></span>
+                  </button>
+                </div>
+                <p class="mode-description" id="mode-description">
+                  A softer starting point for everyday conversations.
+                </p>
+              </section>
+            </div>
+            <div class="listen-secondary">
+              <section
+                class="panel settings-panel"
+                aria-labelledby="settings-heading"
+              >
+                <div class="section-heading">
+                  <h2 id="settings-heading">
+                    <svg class="icon"><use href="#i-settings" /></svg>Make it
+                    yours
+                  </h2>
+                  <button class="text-button" id="save-profile-shortcut">
+                    Save profile
+                  </button>
+                </div>
+                <div class="slider-control">
+                  <div class="slider-label">
+                    <label for="clarity">Speech clarity</label
+                    ><output id="clarity-value" for="clarity">55%</output>
+                  </div>
+                  <input
+                    type="range"
+                    id="clarity"
+                    min="0"
+                    max="100"
+                    value="55"
+                    step="1"
+                  />
+                  <p>
+                    Emphasizes speech frequencies. Does not isolate a speaker.
+                  </p>
+                </div>
+                <div class="slider-control">
+                  <div class="slider-label">
+                    <label for="reduction">Noise reduction</label
+                    ><output id="reduction-value" for="reduction">35%</output>
+                  </div>
+                  <input
+                    type="range"
+                    id="reduction"
+                    min="0"
+                    max="100"
+                    value="35"
+                    step="1"
+                  />
+                  <p>Softens steady background noise and quiet gaps.</p>
+                </div>
+                <div class="slider-control">
+                  <div class="slider-label">
+                    <label for="awareness">Surroundings blend</label
+                    ><output id="awareness-value" for="awareness">35%</output>
+                  </div>
+                  <input
+                    type="range"
+                    id="awareness"
+                    min="0"
+                    max="100"
+                    value="35"
+                    step="1"
+                  />
+                  <p>
+                    Mixes captured microphone sound back in. No alarm detection.
+                  </p>
+                </div>
+                <div class="slider-control">
+                  <div class="slider-label">
+                    <label for="volume">Listening volume</label
+                    ><output id="volume-value" for="volume">25%</output>
+                  </div>
+                  <input
+                    type="range"
+                    id="volume"
+                    min="0"
+                    max="100"
+                    value="25"
+                    step="1"
+                  />
+                  <p>Works alongside your phone’s media volume.</p>
+                </div>
+              </section>
+              <aside class="privacy-card">
+                <span class="privacy-icon"
+                  ><svg class="icon"><use href="#i-shield" /></svg
+                ></span>
+                <div>
+                  <h3>Your conversations stay yours.</h3>
+                  <p>
+                    Audio is processed on your phone. It is never recorded,
+                    saved, or sent anywhere.
+                  </p>
+                </div>
+              </aside>
+              <button class="guide-link" data-navigate="guide">
+                <span
+                  >New to AURA?<br /><strong
+                    >A calmer start, step by step.</strong
+                  ></span
+                ><svg class="icon"><use href="#i-arrow" /></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+        <section
+          id="page-profiles"
+          class="page"
+          aria-labelledby="profiles-heading"
+          hidden
+        >
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">BEFORE · PREPARE FOR YOUR MOMENT</p>
+              <h1 id="profiles-heading">Your Personal Acoustic Profile.</h1>
+              <p class="intro-description">
+                Keep your listening context and sound preferences together.
+              </p>
+            </div>
+          </div>
+          <div class="panel current-settings">
+            <div>
+              <p class="eyebrow">CURRENT SETUP</p>
+              <h2 id="profile-mode">Care mode</h2>
+              <p id="profile-summary">
+                Clarity 55 · Reduction 35 · Surroundings 35 · Volume 25
+              </p>
+            </div>
+            <button id="new-profile" class="button primary">
+              <svg class="icon"><use href="#i-plus" /></svg>Save as a profile
+            </button>
+          </div>
+          <div class="section-heading list-heading">
+            <h2>Saved acoustic profiles</h2>
+            <span id="profile-count">0 profiles</span>
+          </div>
+          <div id="profiles-list" class="profiles-list"></div>
+          <div class="empty-state" id="profiles-empty">
+            <span class="empty-icon"
+              ><svg class="icon"><use href="#i-profile" /></svg
+            ></span>
+            <h2>A setting that feels like you.</h2>
+            <p>
+              Adjust the sliders in Listen, then save your first profile. Your
+              profiles stay on this phone.
+            </p>
+          </div>
+          <div class="panel data-panel">
+            <h2>Keep your settings close</h2>
+            <p>
+              Export profiles, preferences, and session notes to a JSON backup.
+              Import a backup when moving phones. Audio is never included.
+            </p>
+            <div class="button-row">
+              <button class="button secondary" data-command="export">
+                <svg class="icon"><use href="#i-download" /></svg>Export backup</button
+              ><button class="button secondary" data-command="import">
+                <svg class="icon"><use href="#i-upload" /></svg>Import backup
+              </button>
+            </div>
+            <p class="caption">
+              Backups include your written notes. Choose a storage location you
+              trust. Import replaces the current settings and history.
+            </p>
+          </div>
+        </section>
+        <section
+          id="page-sessions"
+          class="page"
+          aria-labelledby="sessions-heading"
+          hidden
+        >
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">AFTER · A MOMENT TO REFLECT</p>
+              <h1 id="sessions-heading">Your listening journal.</h1>
+              <p class="intro-description">
+                A few details to help you find what works for you.
+              </p>
+            </div>
+          </div>
+          <div class="session-stats">
+            <div>
+              <strong id="session-count">0</strong><span>Sessions</span>
+            </div>
+            <div>
+              <strong id="session-total">0 min</strong
+              ><span>Time listening</span>
+            </div>
+            <div>
+              <strong id="session-rated">0</strong><span>Reflections</span>
+            </div>
+          </div>
+          <div class="section-heading list-heading">
+            <h2>Recent sessions</h2>
+            <button id="clear-history" class="text-button">
+              Clear history
+            </button>
+          </div>
+          <div id="sessions-list" class="sessions-list"></div>
+          <div class="empty-state" id="sessions-empty">
+            <span class="empty-icon"
+              ><svg class="icon"><use href="#i-clock" /></svg
+            ></span>
+            <h2>Every conversation is a fresh start.</h2>
+            <p>
+              Completed sessions appear here with their duration and mode. Add
+              an optional reflection afterward.
+            </p>
+            <button class="button secondary" data-navigate="listen">
+              Go to listening<svg class="icon"><use href="#i-arrow" /></svg>
+            </button>
+          </div>
+          <div class="journal-note">
+            <svg class="icon"><use href="#i-info" /></svg>
+            <p>
+              Only session details and your feedback are saved. Suggestions
+              change your settings only when you choose to apply them.
+            </p>
+          </div>
+        </section>
+        <section
+          id="page-guide"
+          class="page"
+          aria-labelledby="guide-heading"
+          hidden
+        >
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">A LITTLE GUIDANCE</p>
+              <h1 id="guide-heading">Make yourself comfortable.</h1>
+              <p class="intro-description">
+                An easier start, at your own pace.
+              </p>
+            </div>
+          </div>
+          <section class="panel quick-start">
+            <h2>Your first listening session</h2>
+            <ol>
+              <li>
+                <span>1</span>
+                <div>
+                  <h3>Connect headphones</h3>
+                  <p>
+                    Use wired or USB-C headphones where possible. Bluetooth may
+                    add a noticeable delay. AURA requires a headphone route to
+                    avoid speaker feedback.
+                  </p>
+                </div>
+              </li>
+              <li>
+                <span>2</span>
+                <div>
+                  <h3>Give AURA a little permission</h3>
+                  <p>
+                    Tap Start listening and allow microphone access. Allow
+                    notifications to keep a visible stop control while
+                    listening. No account or internet is needed.
+                  </p>
+                </div>
+              </li>
+              <li>
+                <span>3</span>
+                <div>
+                  <h3>Start softly, then adjust</h3>
+                  <p>
+                    Lower phone media volume, choose Care, and start. Place the
+                    phone near the conversation. Adjust clarity and volume
+                    slowly for comfort.
+                  </p>
+                </div>
+              </li>
+              <li>
+                <span>4</span>
+                <div>
+                  <h3>Take a moment afterward</h3>
+                  <p>
+                    Tap Stop listening or use the notification. Save a profile
+                    and leave optional feedback in Sessions to remember what
+                    helped.
+                  </p>
+                </div>
+              </li>
+            </ol>
+          </section>
+          <section class="panel device-panel">
+            <div class="section-heading">
+              <h2>This phone</h2>
+              <svg class="icon"><use href="#i-headphones" /></svg>
+            </div>
+            <dl>
+              <div>
+                <dt>Android</dt>
+                <dd id="device-android">Native app required</dd>
+              </div>
+              <div>
+                <dt>Audio route</dt>
+                <dd id="device-route">Unavailable in browser</dd>
+              </div>
+              <div>
+                <dt>Microphone permission</dt>
+                <dd id="device-mic">Not available</dd>
+              </div>
+              <div>
+                <dt>Device noise suppressor</dt>
+                <dd id="device-ns">Checked when listening starts</dd>
+              </div>
+            </dl>
+            <div class="button-row">
+              <button class="button secondary" data-command="permissions">
+                Check permissions</button
+              ><button class="text-button" data-command="appSettings">
+                Open app settings
+              </button>
+            </div>
+          </section>
+          <div class="guide-accordions">
+            <details class="panel">
+              <summary>What does AURA actually do?</summary>
+              <div class="details-content">
+                <p>
+                  AURA takes live microphone audio, emphasizes speech
+                  frequencies, reduces some steady noise and quiet gaps, blends
+                  captured microphone audio back in, and sends it to your
+                  headphones.
+                </p>
+                <p>
+                  Care starts gently, Focus emphasizes speech more, and Commute
+                  includes more surrounding sound. These are adjustable presets.
+                  AURA does not use cloud AI, identify or isolate a particular
+                  speaker, transcribe speech, or recognize alarms.
+                </p>
+                <p>
+                  Device noise suppression is used when Android makes it
+                  available; it can also affect the sound used for the
+                  surroundings blend. Sound quality depends on your microphone,
+                  headphones, surroundings, and phone. It cannot remove every
+                  kind of noise.
+                </p>
+              </div>
+            </details>
+            <details class="panel">
+              <summary>Listening comfortably and safely</summary>
+              <div class="details-content">
+                <p>
+                  Keep both app and phone volume low. Stop if sound becomes
+                  harsh, uncomfortable, or starts to echo. Move your phone away
+                  from headphone speakers if you hear feedback.
+                </p>
+                <p>
+                  Surroundings blend mixes in microphone audio; it does not
+                  guarantee that you will hear alarms, vehicles, or people. Do
+                  not rely on AURA for safety, driving, or crossing roads.
+                </p>
+                <p>
+                  AURA is an experimental listening aid, not a medical device or
+                  a replacement for hearing care. For hearing concerns, consult
+                  a qualified professional.
+                </p>
+              </div>
+            </details>
+            <details class="panel">
+              <summary>Why is there an echo or a delay?</summary>
+              <div class="details-content">
+                <p>
+                  Audio processing and your headphones introduce delay.
+                  Bluetooth usually adds more delay than wired or USB-C audio;
+                  some devices are unsuitable for comfortable live listening.
+                </p>
+                <p>
+                  Try wired headphones, lower the volume, and move the phone
+                  closer to the person speaking. Close other apps using the
+                  microphone. If another app, a call, or a route change
+                  interrupts listening, check your headphones and start again.
+                </p>
+                <p>
+                  The Processing figure is time spent processing a block of
+                  audio. It does not measure total microphone-to-ear delay.
+                </p>
+              </div>
+            </details>
+            <details class="panel">
+              <summary>Install and update on Android</summary>
+              <div class="details-content">
+                <p>
+                  Use Android 8.0 or newer. Copy the AURA APK from your build to
+                  your phone, open it with Files, and allow “Install unknown
+                  apps” for that file manager when Android asks. Install, then
+                  open AURA.
+                </p>
+                <p>
+                  You can turn that install permission off afterward. No Play
+                  Store account, trial, or subscription is required. Only
+                  install an APK from a source you trust.
+                </p>
+                <p>
+                  Build instructions are included in the project README. Keep
+                  the same app ID and signing key to install an update over an
+                  existing version. Export a backup first; uninstalling removes
+                  local profiles and history.
+                </p>
+              </div>
+            </details>
+            <details class="panel">
+              <summary>Privacy, backups, and your data</summary>
+              <div class="details-content">
+                <p>
+                  Audio is processed in memory on this phone. AURA does not save
+                  recordings, transmit audio, or require an account. Allow
+                  notifications to see the microphone service’s Stop control
+                  while listening. If notifications are denied, Android may show
+                  the service only in its active-apps controls.
+                </p>
+                <p>
+                  Settings, profiles, and session details are stored locally.
+                  Session details include time, duration, starting settings,
+                  context, optional feedback, and notes. JSON exports contain
+                  this data, never audio. Account offers an optional Supabase
+                  cloud backup of the same metadata; nothing is uploaded
+                  automatically.
+                </p>
+                <p>
+                  Deleting a profile does not delete past sessions. Clear
+                  history removes session details; Reset AURA removes app
+                  preferences, profiles, and history. Delete exported files in
+                  their storage location and cloud backups in Account. Reset on
+                  this phone does not delete your cloud account or sign you out.
+                </p>
+              </div>
+            </details>
+          </div>
+          <section
+            class="panel capability-panel"
+            aria-labelledby="capability-heading"
+          >
+            <p class="eyebrow">THE AURA PROPOSAL</p>
+            <h2 id="capability-heading">
+              Selective Awareness: development status
+            </h2>
+            <dl>
+              <div>
+                <dt>Speech clarity &amp; noise reduction</dt>
+                <dd>Available · on-device audio processing</dd>
+              </div>
+              <div>
+                <dt>Personal Acoustic Profile</dt>
+                <dd>Available · context, saved settings &amp; feedback</dd>
+              </div>
+              <div>
+                <dt>Voice Focus</dt>
+                <dd>
+                  Not yet available · selecting and isolating one speaker
+                  requires a validated audio model.
+                </dd>
+              </div>
+              <div>
+                <dt>Safe Awareness</dt>
+                <dd>
+                  Not yet available · surroundings blend cannot recognize or
+                  guarantee preservation of alarms, sirens, or horns.
+                </dd>
+              </div>
+            </dl>
+            <p class="caption">
+              Real-world clarity and total audio delay still need device and
+              listening tests. AURA does not claim clinical validation.
+            </p>
+          </section>
+          <div class="panel about-panel">
+            <div class="about-brand">
+              <span class="brand-mark"
+                ><svg class="icon"><use href="#i-wave" /></svg
+              ></span>
+              <div>
+                <h2>AURA</h2>
+                <p>Local-first listening · Version 1.1</p>
+              </div>
+            </div>
+            <p>
+              Built for everyday moments of connection. Free to use, with no
+              paid APIs or subscriptions. Cloud accounts are optional.
+            </p>
+            <button class="text-button danger" id="reset-app">
+              Reset AURA on this phone
+            </button>
+          </div>
+        </section>
+        <section
+          id="page-account"
+          class="page"
+          aria-labelledby="account-heading"
+          hidden
+        >
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">YOUR DATA · YOUR CHOICE</p>
+              <h1 id="account-heading">Keep your progress.</h1>
+              <p class="intro-description">
+                Optional cloud backup. Your conversations stay on your phone.
+              </p>
+            </div>
+          </div>
+          <div class="panel cloud-panel">
+            <span class="cloud-emblem"
+              ><svg class="icon"><use href="#i-shield" /></svg
+            ></span>
+            <h2 id="cloud-heading">Supabase Free</h2>
+            <p id="cloud-status" role="status">
+              Cloud backup is optional. Listening works offline.
+            </p>
+            <p id="cloud-project" class="cloud-project"></p>
+            <p id="cloud-email" class="cloud-email"></p>
+            <p id="cloud-last-backup" class="caption"></p>
+            <div class="button-row" id="cloud-auth-actions">
+              <button class="button primary" data-command="cloudSignIn">
+                Sign in
+              </button>
+              <button class="button secondary" data-command="cloudSignUp">
+                Create account
+              </button>
+              <button class="text-button" data-command="cloudResetPassword">
+                Forgot password?
+              </button>
+            </div>
+            <div id="cloud-signed-in" hidden>
+              <div class="button-row">
+                <button class="button primary" data-command="cloudBackup">
+                  Back up now</button
+                ><button class="button secondary" data-command="cloudRestore">
+                  Restore cloud backup
+                </button>
+              </div>
+              <p class="caption">
+                One backup per account. Back up replaces the cloud copy; restore
+                replaces local data after confirmation. It is not automatic
+                sync.
+              </p>
+              <div class="button-row">
+                <button class="text-button" data-command="cloudSignOut">
+                  Sign out</button
+                ><button
+                  class="text-button danger"
+                  data-command="cloudDeleteBackup"
+                >
+                  Delete cloud backup</button
+                ><button
+                  class="text-button danger"
+                  data-command="cloudDeleteAccount"
+                >
+                  Delete cloud account
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="privacy-card">
+            <span class="privacy-icon"
+              ><svg class="icon"><use href="#i-shield" /></svg
+            ></span>
+            <div>
+              <h3>Only the details you choose.</h3>
+              <p>
+                A backup includes settings, profiles, listening contexts,
+                session details, and your written notes. It never contains
+                microphone audio. Notes can contain personal information—review
+                them before uploading.
+              </p>
+            </div>
+          </div>
+          <details class="panel cloud-setup">
+            <summary>Project setup &amp; connection</summary>
+            <div class="details-content">
+              <p>
+                AURA connects to a dedicated Supabase Free project. Its database
+                migration and email sign-in must be configured by the project
+                owner. A paused project or free-plan limit can temporarily stop
+                backups; offline listening continues.
+              </p>
+              <div class="button-row">
+                <button class="button secondary" data-command="cloudConfigure">
+                  Configure project</button
+                ><button class="text-button" data-command="cloudDisconnect">
+                  Disconnect project
+                </button>
+              </div>
+              <p>
+                Forgot your password? Use the email recovery code from the
+                sign-in panel. The project owner must first configure the
+                recovery email template in the setup guide.
+              </p>
+            </div>
+          </details>
+        </section>
+      </main>
+      <footer class="app-footer">
+        <svg class="icon"><use href="#i-shield" /></svg>On your phone. In your
+        control.
+      </footer>
+    </div>
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <div>
+        <button data-tab="listen" class="nav-item active" aria-current="page">
+          <svg class="icon"><use href="#i-wave" /></svg
+          ><span>Listen</span></button
+        ><button data-tab="profiles" class="nav-item">
+          <svg class="icon"><use href="#i-profile" /></svg
+          ><span>Profiles</span></button
+        ><button data-tab="sessions" class="nav-item">
+          <svg class="icon"><use href="#i-clock" /></svg
+          ><span>Sessions</span></button
+        ><button data-tab="guide" class="nav-item">
+          <svg class="icon"><use href="#i-book" /></svg
+          ><span>Guide</span></button
+        ><button data-tab="account" class="nav-item">
+          <svg class="icon"><use href="#i-shield" /></svg><span>Account</span>
+        </button>
+      </div>
+    </nav>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <div id="modal-overlay" class="modal-overlay" hidden>
+      <section
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        tabindex="-1"
+      >
+        <button
+          id="modal-close"
+          class="icon-button modal-close"
+          aria-label="Close dialog"
+        >
+          <svg class="icon"><use href="#i-close" /></svg>
+        </button>
+        <p class="eyebrow" id="modal-eyebrow">AURA</p>
+        <h2 id="modal-title"></h2>
+        <div id="modal-content"></div>
+        <div id="modal-actions" class="modal-actions"></div>
+      </section>
+    </div>
+  </body>
+</html>
