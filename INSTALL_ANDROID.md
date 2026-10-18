@@ -70,3 +70,11 @@ Use **Sessions → Clear history** to remove session details only, or **Guide �
 The on-screen **Processing** time measures computation for an audio block, not the complete microphone-to-ear delay.
 
 Commute mode and the surroundings/awareness mix are processing preferences, not an alarm-recognition system. Do not use live listening where delayed or changed sound would make an activity unsafe, including driving.
+
+## Upgrade to AURA 1.1 and optional Supabase
+
+Export a local JSON backup before upgrading. The supplied 1.1 APK retains the application ID and debug signer from the previously delivered APK, so it can update that build in place without uninstalling. The APK version is now 1.1.0 (version code 2). If your existing APK came from another signing key, follow the signing-mismatch instructions above.
+
+Listen now includes a Before–During–After journey and listening contexts. Profiles store context with your preferences; new sessions remember starting settings for later feedback. Previous version 1 backups remain importable.
+
+Account offers optional Supabase sign-in and manual metadata backup. The public project connection is preconfigured, but the owner must finish [Supabase database and email setup](SUPABASE_SETUP.md). Listening stays local and does not require sign-in. Microphone audio is never uploaded. Cloud backup is not automatic sync; read the replacement confirmation before uploading or restoring.

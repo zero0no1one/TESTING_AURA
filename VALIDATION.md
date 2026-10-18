@@ -4,24 +4,28 @@ This file separates automated development checks from checks that require a phys
 
 ## Automated checks
 
-Results from the supplied build (18 October 2026, Asia/Manila):
+Results from AURA 1.1.0 (18 October 2026, Asia/Manila):
 
 | Check | Command / method | Status |
 | --- | --- | --- |
 | Standalone audio-processing checks | `sh tests/audio/run.sh` | Passed: 512,022 sample-level assertions across generated signals at 16/48 kHz |
 | Debug APK compilation and packaging | `./gradlew :app:assembleDebug` | Passed; Android 8+ / target Android 15 |
 | Android static analysis | `./gradlew :app:lintDebug` | Passed with 0 errors and 2 reviewed warnings |
-| Web UI interaction checks | `npm run test:ui` | 23 passed; 1 duplicate screenshot check intentionally skipped; 320 px and 375 px widths |
+| Web UI interaction checks | `npm run test:ui` | 35 passed; 1 duplicate screenshot check intentionally skipped; 320 px and 375 px widths |
+| JVM persistence/configuration checks | `./gradlew :app:testDebugUnitTest` | 11 passed (9 Robolectric storage/upgrade tests, 2 origin/key checks) |
+| Database ownership/constraint checks | `python3 tests/cloud/test_database.py` | 31 operations passed in isolated PostgreSQL; Auth identities simulated |
+| Live Supabase end-to-end | Auth/recovery/backup/restore/deletion | Not run: project blocked by environment proxy; owner must install migration and test |
+| Codex Security plugin scan | Required capability preflight | Blocked: supporting skill resources/runtime unavailable; no scan pass claimed |
 | Android integration test APK | `./gradlew :app:assembleDebugAndroidTest` | Passed compilation; 8 runtime tests were not executed because emulator startup was blocked |
-| APK signature | Android SDK `apksigner verify --verbose` | Passed, APK Signature Scheme v2, one debug signer |
-| APK contents and permissions | Android SDK `aapt dump badging` | Correct launch activity, minSdk 26, targetSdk 35; no INTERNET permission |
+| APK signature | Android SDK `apksigner verify --verbose` | Passed, APK Signature Scheme v2, same debug certificate as the delivered 1.0 APK |
+| APK contents and permissions | Android SDK `aapt dump badging` | Correct launch activity, version code 2, minSdk 26, targetSdk 35; INTERNET added for optional native Supabase only |
 | Source archive | ZIP integrity, required-file checks, and build from extracted source | Passed; source, wrappers, and docs included; local keys/SDKs/caches excluded |
 
 The two lint warnings are expected: the legacy-back opt-out attribute is ignored on Android versions before API 33, and JavaScript is enabled for the bundled local interface. The WebView blocks network loads and external navigation, disallows general file/content access, and renders user profile names and notes as text. Tests check text escaping. No lint checks were disabled.
 
 Android runtime checks were blocked by the cloud test environment. Hardware virtualization (`/dev/kvm`) is unavailable. The Android 11 software-only emulator encountered a system StorageManager startup crash before app installation. A separate Android 15 image got further but did not complete boot within the test window (over 10 minutes from launch). No Android app-launch or native integration-test pass is claimed. The 8 compiled instrumentation tests cover actual SharedPreferences, backup validation, and WebView/bridge startup and can be run with `./gradlew :app:connectedDebugAndroidTest` on a working emulator or test phone. No physical phone or headphones are attached here.
 
-The DSP checks cover finite bounded output, silence, frequency response, low-level noise attenuation, surroundings blend, live settings changes, mute, and invalid input bounds. The browser tests use a simulated bridge and cover onboarding, start/stop commands, modes/sliders, profiles, feedback, backup commands, data escaping, navigation, and responsive layouts. They do not execute Android microphone code. Automated signals cannot substitute for listening tests with real speech and noise.
+The DSP checks cover finite bounded output, silence, frequency response, low-level noise attenuation, surroundings blend, live settings changes, mute, and invalid input bounds. The browser tests use a simulated bridge and cover onboarding, start/stop commands, contexts, modes/sliders, profiles, post-session feedback, snapshot-based recommendations, cloud action commands, data escaping, navigation, and responsive layouts. The PostgreSQL suite tests the actual migration with mock Auth identities, including cross-user denial and account-deletion isolation. JVM tests use Robolectric for Android storage APIs; they do not execute Android Keystore or live Supabase networking. They do not execute Android microphone code. Automated signals cannot substitute for listening tests with real speech and noise.
 
 ## Physical Android acceptance checks
 
@@ -56,3 +60,12 @@ Use Android 8 or later, begin with low media volume, set the app output to 25%, 
 The app makes no guaranteed latency claim. Measure the delay on the actual phone and headphones with an external test setup if timing matters. Bluetooth measurements should be separate from wired/USB-C measurements.
 
 Compare short speech samples in quiet, steady noise, and competing speech using low playback levels. Record settings and subjective clarity; more noise reduction is not always better. A small test sample does not establish medical benefit, reliable emergency-sound preservation, or safety for all users.
+
+## Additional 1.1 acceptance checks
+
+- Install over the previously delivered APK without uninstalling; confirm old profiles/history survive and new context defaults to Everyday conversation.
+- Test native email/password/recovery dialogs with the keyboard open and large system text. Confirm screenshot blocking for credential dialogs on the actual phone.
+- Complete the two-account Supabase checks in [SUPABASE_SETUP.md](SUPABASE_SETUP.md). Test valid sign-in with an existing password shorter than 12 characters, rejected/revoked token handling, app restart with encrypted tokens, offline sign-out, and reconnection.
+- Verify a failed cloud restore leaves current data intact. Confirm live listening stops before an accepted restore.
+- Run the Codex Security repository scan after its complete plugin is available. See [SECURITY_STATUS.md](SECURITY_STATUS.md); ordinary testing is not equivalent to that scan.
+- Attach the missing demo screens for exact UI comparison. Only the supplied waveform emblem and document terminology have been matched.

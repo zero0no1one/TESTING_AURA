@@ -1,29 +1,32 @@
-# AURA for Android
+# AURA 1.1 for Android
 
-An offline listening app with speech-band enhancement, noise reduction, listening modes, profiles, session feedback, and local backup. No account, subscription, paid API, or internet connection is required by the app.
+[Download AURA 1.1 APK](https://github.com/zero0no1one/TESTING_AURA/raw/refs/heads/aura-download/AURA-1.1.apk) · [Complete source ZIP](https://github.com/zero0no1one/TESTING_AURA/raw/refs/heads/aura-download/AURA-source.zip) · [Browse source](https://github.com/zero0no1one/TESTING_AURA/tree/aura-upgrade)
 
-## Download
+A local-first listening prototype with a Before–During–After workflow, seven listening contexts, Personal Acoustic Profiles, session-specific feedback, and optional Supabase Free accounts and metadata backup. Microphone audio stays on the phone.
 
-- [Download the Android APK](https://github.com/zero0no1one/TESTING_AURA/raw/refs/heads/aura-download/AURA-debug.apk)
-- [Download the complete source code](https://github.com/zero0no1one/TESTING_AURA/raw/refs/heads/aura-download/AURA-source.zip)
-
-If this repository is private, sign into GitHub with an account that has access. If a link opens a file preview, use the download button on that page.
-
-## Install on your phone
+## Install or update
 
 1. Use Android 8.0 or newer. Open the APK download link in Chrome.
-2. Open your phone's Files app, go to Downloads, and tap AURA-debug.apk.
-3. If Android asks, allow installation from that source. You can disable that permission after installation.
-4. Open AURA, connect headphones, allow microphone access, and start at low volume.
+2. Open Files → Downloads → AURA-1.1.apk. Allow installation from that source if Android asks.
+3. This APK uses the same application ID and signer as the previously delivered AURA 1.0 APK; install it as an update. Export a local backup first.
+4. Connect headphones, allow microphone permission, and begin at low volume. Listening does not require an account.
 
-See [the Android installation guide](INSTALL_ANDROID.md) and [build instructions](BUILD_AND_RUN.md).
+[Full installation guide](INSTALL_ANDROID.md) · [Build instructions](BUILD_AND_RUN.md)
 
-## Status and limitations
+## Supabase setup required
 
-This is a debug-signed build for direct installation and testing. Build, signing, DSP, and browser UI checks passed. Native Android runtime and physical-phone audio behavior remain unverified; see [validation details](VALIDATION.md).
+The supplied public project connection is included. Before cloud backup can work, the project owner must run [AURA-database.sql](AURA-database.sql) and configure email authentication/recovery as described in [SUPABASE_SETUP.md](SUPABASE_SETUP.md). The environment could not reach the live project; live authentication and backup remain unverified.
 
-Audio processing runs offline using conventional DSP. It does not isolate a selected speaker or classify alarms. Bluetooth can introduce substantial delay. This app is not a medical device or a replacement for situational awareness.
+Cloud backups contain settings, profiles, context, session details, and written notes. Upload and restore are explicit replacement actions, not automatic synchronization. Accounts are optional; no audio is uploaded. Row-level security restricts each user to their own backup. Never use a secret or service-role key in the app.
 
-The source archive excludes signing keys. Builds signed with a different key require uninstalling the old app first; export your local data before uninstalling. Maintain your own signing key for future updates.
+## Validation and limitations
 
-[SHA-256 checksums](SHA256SUMS) are provided for all download artifacts.
+- Build, signing, lint (0 errors, 2 reviewed warnings), 11 JVM tests, 35 browser UI tests, and 512,022 DSP assertions passed.
+- The migration passed 31 PostgreSQL policy/constraint/lifecycle operations with simulated Auth identities.
+- The source archive builds independently. The debug-signed APK is for direct installation/testing.
+- Physical Android audio, native authentication/Keystore, and live Supabase end-to-end checks remain unverified.
+- The requested Codex Security scan was blocked by missing plugin resources/runtime. [Security status](SECURITY_STATUS.md) records controls and evidence; no scan pass is claimed.
+- Selected-speaker isolation, semantic sound classification, and reliable alarm/siren preservation remain research objectives. The app clearly labels them as unavailable.
+- The supplied logo guided the visual design. Exact matching to unseen Drive demo screens remains unverified.
+
+[Detailed validation](VALIDATION.md) · [Proposal alignment](https://github.com/zero0no1one/TESTING_AURA/blob/aura-upgrade/docs/PROPOSAL_ALIGNMENT.md) · [SHA-256 checksums](SHA256SUMS)
