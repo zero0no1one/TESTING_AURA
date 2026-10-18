@@ -8,7 +8,7 @@ You do not need to know your phone model before trying it. You will need headpho
 
 ## 2. Get the APK
 
-Use `dist/AURA-debug.apk` from the delivered files. If it is not included, build the project using the [README](../README.md); the resulting file is `app/build/outputs/apk/debug/app-debug.apk`.
+Open [Download AURA 1.2 APK](https://github.com/zero0no1one/TESTING_AURA/raw/refs/heads/aura-download/AURA-1.2.apk) in Chrome on your Android phone, or use `dist/AURA-1.2.apk` from the delivered files. If it is not included, build the project using the [README](../README.md); the resulting file is `app/build/outputs/apk/debug/app-debug.apk`.
 
 Transfer the APK with either of these free methods:
 
@@ -38,7 +38,7 @@ If Android reports **App not installed**, check that the phone is on Android 8 o
 6. Have someone speak at a comfortable distance. Compare modes and adjust speech clarity, noise reduction, and awareness to preference.
 7. Stop from the app or its ongoing notification when finished. You can save feedback about the session and a profile for later.
 
-AURA prefers the built-in phone microphone and sends the processed sound to headphones. It stops on audio-focus loss, a detected route change, or headphone disconnection; it does not automatically resume. Check the connection and tap Start again. Android routing changes can occur before the app is notified, so the route checks are not a guarantee against every brief routing transition.
+AURA defaults to the built-in phone microphone; select a wired/USB headset microphone under **Hear your voice clearly** if needed. It verifies the reported input route and sends the processed sound to headphones. It stops on audio-focus loss, a detected route change, or headphone disconnection; it does not automatically resume. Check the connection and tap Start again. Android routing changes can occur before the app is notified, so the route checks are not a guarantee against every brief routing transition.
 
 AURA listens through its microphone input and sends the processed sound to headphones. It cannot access or enhance the audio from every other app, and it does not act as a system-wide equalizer.
 
@@ -71,10 +71,16 @@ The on-screen **Processing** time measures computation for an audio block, not t
 
 Commute mode and the surroundings/awareness mix are processing preferences, not an alarm-recognition system. Do not use live listening where delayed or changed sound would make an activity unsafe, including driving.
 
-## Upgrade to AURA 1.1 and optional Supabase
+## Upgrade to AURA 1.2 and optional Supabase
 
-Export a local JSON backup before upgrading. The supplied 1.1 APK retains the application ID and debug signer from the previously delivered APK, so it can update that build in place without uninstalling. The APK version is now 1.1.0 (version code 2). If your existing APK came from another signing key, follow the signing-mismatch instructions above.
+Export a local JSON backup before upgrading. The supplied 1.2 APK retains the application ID and debug signer from the previously delivered APK, so it can update that build in place without uninstalling. The APK version is now 1.2.0 (version code 3). If your existing APK came from another signing key, follow the signing-mismatch instructions above.
 
 Listen now includes a Before–During–After journey and listening contexts. Profiles store context with your preferences; new sessions remember starting settings for later feedback. Previous version 1 backups remain importable.
 
 Account offers optional Supabase sign-in and manual metadata backup. The public project connection is preconfigured, but the owner must finish [Supabase database and email setup](SUPABASE_SETUP.md). Listening stays local and does not require sign-in. Microphone audio is never uploaded. Cloud backup is not automatic sync; read the replacement confirmation before uploading or restoring.
+
+## Quiet voice, buzzing, and sound categories
+
+See [Audio troubleshooting](AUDIO_TROUBLESHOOTING.md). Start with **Phone microphone**, **Direct microphone comparison** on, device suppression off, low media volume and app volume 25%. Speak near the phone and raise **Microphone boost** gradually (try +6 dB, then +12 dB only if needed). If speech remains absent or the signal is vibrating, stop and compare the other microphone/cable; do not keep raising volume. Turn comparison off to use AURA’s filters.
+
+**Sounds around you** displays estimated vocals, vehicles, air/wind and sirens while listening. Scores are not sound volumes or accuracy percentages and do not control the audio. Turn categories off to compare performance if playback underruns occur. The included model increases APK size and battery/CPU use. No extra account, subscription or runtime download is required.

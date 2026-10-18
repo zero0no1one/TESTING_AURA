@@ -28,3 +28,7 @@ Skill source: `skill://Plugin_1e648473be9c8191a91ac3947151af55/security-scan/SKI
 - Ordinary code review found and fixed existing-short-password sign-in rejection, a stale onboarding privacy sentence, and invalid-refresh-session recovery. This was not run as a Codex Security scan.
 - Live Supabase authentication/recovery/backup/account deletion remains unverified because the environment proxy rejects the project and no management connector is available. The owner must install the migration and perform the two-account acceptance checks in `SUPABASE_SETUP.md`.
 - Physical-phone audio routing, native dialog behavior, Keystore persistence, and device lifecycle checks remain unverified. The debug APK is intended for testing, not an assurance of production security.
+
+## 1.2 audio/model change
+
+The APK now includes LiteRT 1.4.0 and a fixed local YAMNet model; these increase the native runtime and dependency surface. The app accepts no remote/user model, validates the bundled model SHA-256 and tensor dimensions, bounds pending PCM to two windows, and never uploads/stores audio or model predictions. New metadata fields are sanitized and validated during imports. Audio/UI/storage tests and a focused correctness review passed; this is not a substitute for the blocked Codex Security scan or a dependency vulnerability audit. Native model execution and routing on a physical Android phone remain unverified.
